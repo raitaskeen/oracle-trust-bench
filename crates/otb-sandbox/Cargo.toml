@@ -1,0 +1,16 @@
+[package]
+name = "otb-sandbox"
+description = "Runs untrusted C code with no network and resource limits (Docker, or a weaker unshare/prlimit fallback)."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+thiserror.workspace = true
+
+[lints]
+workspace = true

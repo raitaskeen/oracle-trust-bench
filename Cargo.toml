@@ -20,6 +20,9 @@ toml = { version = "1.2", default-features = false, features = ["parse", "serde"
 clap = { version = "4.6", features = ["derive"] }
 otb-core = { path = "crates/otb-core" }
 otb-vectors = { path = "crates/otb-vectors" }
+otb-oracles = { path = "crates/otb-oracles" }
+otb-sandbox = { path = "crates/otb-sandbox" }
+otb-harness = { path = "crates/otb-harness" }
 sha3 = "0.12"
 shake = "0.1"
 proptest = "1"

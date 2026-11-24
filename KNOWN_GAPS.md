@@ -89,3 +89,13 @@ Entries are never deleted. A closed gap stays, with its status set to
   ciphertext) and 10 decapsulation-key-check cases. Passing them is
   necessary evidence, not exhaustive evidence. The `malformed-input` and
   `implicit-rejection` oracles add seeded generated cases.
+
+## GAP-SBX-001 The unshare fallback does not isolate the filesystem
+
+- Status: open
+- Affects: `otb-sandbox` with `--backend unshare`
+- The fallback runs the command in new user and network namespaces under
+  `prlimit` limits. It blocks network access and bounds memory, processes
+  and CPU time, but the command can read and write the host filesystem with
+  the caller's permissions. Its backend name says so. Candidate code must
+  run under the Docker backend; the fallback is for developing the harness.

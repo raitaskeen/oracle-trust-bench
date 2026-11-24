@@ -408,6 +408,8 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "otb-core",
+ "otb-harness",
+ "otb-sandbox",
 ]
 
 [[package]]
@@ -423,6 +425,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "otb-harness"
+version = "0.1.0"
+dependencies = [
+ "otb-core",
+ "otb-oracles",
+ "otb-sandbox",
+ "otb-vectors",
+ "thiserror",
+]
+
+[[package]]
 name = "otb-oracles"
 version = "0.1.0"
 dependencies = [
@@ -430,6 +443,13 @@ dependencies = [
  "proptest",
  "sha3",
  "shake",
+]
+
+[[package]]
+name = "otb-sandbox"
+version = "0.1.0"
+dependencies = [
+ "thiserror",
 ]
 
 [[package]]

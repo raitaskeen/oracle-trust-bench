@@ -1,0 +1,8 @@
+[submodule "third_party/mlkem-native"]
+	path = third_party/mlkem-native
+	url = https://github.com/pq-code-package/mlkem-native.git
+	shallow = true
+[submodule "third_party/mldsa-native"]
+	path = third_party/mldsa-native
+	url = https://github.com/pq-code-package/mldsa-native.git
+	shallow = true

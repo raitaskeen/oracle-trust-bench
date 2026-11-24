@@ -15,6 +15,8 @@ Each entry gives the source URL, the pinned revision and the licence.
 
 | Material | Source | Revision | Licence | Used for |
 |---|---|---|---|---|
+| mlkem-native v2.0.0 | https://github.com/pq-code-package/mlkem-native (git submodule `third_party/mlkem-native`) | commit `d1b2fe782888bdb761a50336012923180be7f502` | Apache-2.0 OR ISC OR MIT (SPDX line in its source files) | Reference implementation for the ML-KEM tasks; built only inside the sandbox |
+| mldsa-native v2.0.0 | https://github.com/pq-code-package/mldsa-native (git submodule `third_party/mldsa-native`) | commit `834a90d5e846ffa1e1611bd24e160bb2e9b86d35` | Apache-2.0 OR ISC OR MIT (SPDX line in its source files) | Reference implementation for the ML-DSA tasks; built only inside the sandbox |
 | ACVP sample vectors: `ML-KEM-keyGen-FIPS203`, `ML-KEM-encapDecap-FIPS203`, `ML-DSA-keyGen-FIPS204`, `ML-DSA-sigGen-FIPS204`, `ML-DSA-sigVer-FIPS204` (`internalProjection.json` only) | https://github.com/usnistgov/ACVP-Server, `gen-val/json-files/` | commit `975de31eb83d87039ec88934fdc47d8c312b892d` | NIST public-software notice: NIST-developed software is not subject to copyright protection within the United States (see the repository README). No SPDX identifier. | `acvp` oracle; validation of the spec-literal reference |
 
 The vendored files are byte-identical to the source; their SHA-256 hashes
