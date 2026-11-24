@@ -24,6 +24,8 @@ confidence-threshold = 0.9
 [bans]
 multiple-versions = "warn"
 wildcards = "deny"
+# Workspace path dependencies are not published, so a missing version is fine.
+allow-wildcard-paths = true
 
 [sources]
 unknown-registry = "deny"

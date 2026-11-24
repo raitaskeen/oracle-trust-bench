@@ -11,8 +11,10 @@
 //! The crate performs no I/O and runs no code.
 
 pub mod canonical;
+pub mod fips;
 mod ids;
 mod oracle;
+pub mod spec;
 mod verdict;
 
 pub use ids::{CandidateId, IdError, TaskId, ToolchainId};

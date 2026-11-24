@@ -45,6 +45,9 @@ jobs:
       - name: Advisories
         run: cargo audit --deny warnings
 
+      - name: Validate task specs
+        run: cargo run --locked -q -p otb-cli -- tasks validate
+
       - name: Build tests (network allowed)
         run: cargo nextest run --workspace --locked --no-run
 

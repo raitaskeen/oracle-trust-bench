@@ -1,0 +1,18 @@
+[package]
+name = "otb-oracles"
+description = "Independent, non-LLM checks for oracle-trust-bench, including spec-literal FIPS 203/204 functions."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

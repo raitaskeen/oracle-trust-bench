@@ -16,6 +16,9 @@ serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 sha2 = "0.10"
 thiserror = "2"
+toml = { version = "1.2", default-features = false, features = ["parse", "serde", "std"] }
+clap = { version = "4.6", features = ["derive"] }
+otb-core = { path = "crates/otb-core" }
 proptest = "1"
 
 [workspace.lints.rust]
@@ -27,3 +30,5 @@ all = { level = "warn", priority = -1 }
 pedantic = { level = "warn", priority = -1 }
 module_name_repetitions = "allow"
 missing_errors_doc = "allow"
+# Math notation (Z_q, r0, mod+) in docs is not code.
+doc_markdown = "allow"
