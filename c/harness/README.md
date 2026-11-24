@@ -13,8 +13,15 @@ All C here runs only inside the sandbox (ADR-001, ADR-003).
   mlkem-native and mldsa-native (pinned submodules), built as single
   compilation units with the portable C backend only.
 
-A program is built as `drivers.c` + one implementation (a reference
-adapter, a seeded fault or a candidate).
+- `acvp_mldsa.c` is a whole program (not a task implementation) that runs
+  the ML-DSA-65 ACVP vectors against mldsa-native.
+
+A task program is built as `drivers.c` + one implementation (a reference
+adapter, a seeded fault or a candidate), staged as `impl.c`. Only
+`drivers.c`, `io.h` and `tasks.h` are staged from this directory; the
+reference adapters are never visible to a candidate, and the pinned
+libraries are staged only for references and for seeded faults that
+declare one (ADR-004).
 
 ## Record formats
 

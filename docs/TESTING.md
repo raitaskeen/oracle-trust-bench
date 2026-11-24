@@ -13,7 +13,8 @@ says what is tested, how, and where.
 | Standard-property tests | Spec-literal code satisfies properties the standards state, exhaustively where the domain is small | `crates/otb-oracles/src/speclit/` | every CI run |
 | Vector tests | Spec-literal code matches every vendored ACVP case | `crates/otb-oracles/tests/` | every CI run |
 | Reference run (`otb ref run`) | Every applicable oracle passes on the C references | CLI, in the sandbox | every CI run (from M3) |
-| Seeded-fault self-test (`otb selftest`) | Every oracle catches the faults it should, and misses only the documented blind spots | CLI, in the sandbox | every CI run (from M6); 100% required |
+| Seeded-fault self-test (`otb selftest`) | Every oracle catches the faults it should, and misses only the documented blind spots | CLI, in the sandbox; expectations in each `c/seeded-faults/*.c` header | every CI run (from M4); every expectation must hold |
+| Admission tests | Each admission rule rejects what it names, and the known evasions (line splicing, trigraphs, digraphs, token pasting, universal character names) are caught | `crates/otb-harness/src/admission.rs` | every CI run |
 | Determinism | Verdict files are byte-identical across reruns and at 1, 4 and 16 jobs | CI script | every CI run (from M6) |
 | Golden tests (`insta`) | Report output does not change by accident | `otb-cli` | every CI run (from M6) |
 | Fuzzing (`cargo-fuzz`) | The ACVP and spec parsers survive hostile input | `fuzz/` | nightly (from M6) |
@@ -48,17 +49,26 @@ cargo nextest run --workspace --locked
 cargo deny --locked check licenses bans sources
 cargo audit --deny warnings
 cargo run --locked -q -p otb-cli -- tasks validate
+# with Docker and OTB_SANDBOX_IMAGE set (docs/notes/environment.md):
+cargo nextest run --workspace --locked --run-ignored all
+cargo run --locked -q --release -p otb-cli -- ref run
+cargo run --locked -q --release -p otb-cli -- selftest
 ```
 
 ## Current numbers
 
-Produced on 24 Nov 2026 at the commit that closed M3:
+Produced on 24 Nov 2026 at the commit that closed M4:
 
-- `cargo nextest run --workspace --locked`: 63 tests run, 63 passed,
+- `cargo nextest run --workspace --locked`: 80 tests run, 80 passed,
   5 skipped (the sandbox isolation tests, which need Docker and
   `OTB_SANDBOX_IMAGE`).
 - The same with `--run-ignored all` and `OTB_SANDBOX_IMAGE` set to the
-  local image (`docs/notes/environment.md`): 68 tests run, 68 passed.
+  local image: 85 tests run, 85 passed.
+- `otb ref run` (Docker): every implemented oracle passes on every
+  reference; 8 s wall-clock.
+- `otb selftest` (Docker): 10 expectations hold, 0 do not, 0 pending;
+  7 s wall-clock. Output in `c/seeded-faults/README.md`.
 
-Earlier record: at commit `c88d45f`, 55 run and 55 passed, also with the
-network removed (`unshare -r -n`).
+Earlier records: at the M3 close (`2d9364b`), 63 run and 63 passed (68
+with Docker); at `c88d45f`, 55 run and 55 passed, also with the network
+removed (`unshare -r -n`).

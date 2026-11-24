@@ -5,8 +5,12 @@ use std::process::ExitCode;
 
 mod budget;
 
-use clap::{Parser, Subcommand};
-use otb_core::spec::{load_all, render_matrix_markdown};
+use clap::{Args, Parser, Subcommand};
+use otb_core::canonical::to_canonical_string;
+use otb_core::spec::{TaskSpec, load_all, render_matrix_markdown};
+use otb_core::{CandidateId, OracleKind, Outcome, ToolchainId, Verdict};
+use otb_harness::oracles::{self, OracleRun};
+use otb_harness::{Harness, ImplKind, Implementation, reference, selftest};
 
 #[derive(Parser)]
 #[command(name = "otb", version, about = "oracle-trust-bench harness")]
@@ -28,6 +32,26 @@ enum Command {
     Ref {
         #[command(subcommand)]
         command: RefCommand,
+    },
+    /// Run every applicable, implemented oracle on one candidate C file.
+    Check {
+        /// Task ID, e.g. MLKEM-T07-compress-d.
+        #[arg(long)]
+        task: String,
+        /// The candidate's C source (one file implementing the task function).
+        #[arg(long)]
+        candidate: PathBuf,
+        /// Print canonical verdict JSON (one per line) instead of a table.
+        #[arg(long)]
+        json: bool,
+        #[command(flatten)]
+        sandbox: SandboxArgs,
+    },
+    /// Run every seeded fault in c/seeded-faults and assert the outcome its
+    /// header documents for each oracle.
+    Selftest {
+        #[command(flatten)]
+        sandbox: SandboxArgs,
     },
     /// Print the task-by-oracle applicability matrix.
     Matrix {
@@ -52,56 +76,117 @@ enum TasksCommand {
 
 #[derive(Subcommand)]
 enum RefCommand {
-    /// Run the C references through the oracles implemented so far and
-    /// compare with the spec-literal code and the ACVP vectors.
+    /// Run the C references through every implemented oracle and compare
+    /// with the spec-literal code and the ACVP vectors.
     Run {
-        /// Sandbox backend: `docker` (default) or `unshare` (weaker).
-        #[arg(long, default_value = "docker")]
-        backend: String,
-        /// Docker image ID; defaults to $OTB_SANDBOX_IMAGE.
-        #[arg(long)]
-        image: Option<String>,
+        #[command(flatten)]
+        sandbox: SandboxArgs,
     },
 }
 
-fn backend_from(name: &str, image: Option<String>) -> Result<otb_sandbox::Backend, String> {
-    match name {
-        "docker" => {
-            let image = image
-                .or_else(|| std::env::var("OTB_SANDBOX_IMAGE").ok())
-                .ok_or("docker backend needs --image or OTB_SANDBOX_IMAGE")?;
-            Ok(otb_sandbox::Backend::Docker { image })
+#[derive(Args)]
+struct SandboxArgs {
+    /// Sandbox backend: `docker` (default) or `unshare` (weaker; never for
+    /// candidates).
+    #[arg(long, default_value = "docker")]
+    backend: String,
+    /// Docker image ID; defaults to $OTB_SANDBOX_IMAGE.
+    #[arg(long)]
+    image: Option<String>,
+}
+
+impl SandboxArgs {
+    fn backend(&self) -> Result<otb_sandbox::Backend, String> {
+        match self.backend.as_str() {
+            "docker" => {
+                let image = self
+                    .image
+                    .clone()
+                    .or_else(|| std::env::var("OTB_SANDBOX_IMAGE").ok())
+                    .ok_or("docker backend needs --image or OTB_SANDBOX_IMAGE")?;
+                Ok(otb_sandbox::Backend::Docker { image })
+            }
+            "unshare" => Ok(otb_sandbox::Backend::UnshareWeaker),
+            other => Err(format!("unknown backend {other:?} (use docker or unshare)")),
         }
-        "unshare" => Ok(otb_sandbox::Backend::UnshareWeaker),
-        other => Err(format!("unknown backend {other:?} (use docker or unshare)")),
+    }
+
+    fn harness(&self) -> Result<Harness, Box<dyn std::error::Error>> {
+        let repo = std::env::current_dir()?;
+        Ok(Harness {
+            repo,
+            backend: self.backend()?,
+        })
     }
 }
 
-fn ref_run(backend: otb_sandbox::Backend) -> ExitCode {
-    let repo = std::env::current_dir().expect("current directory");
-    println!("backend: {}", backend.name());
-    let h = otb_harness::Harness { repo, backend };
+/// The toolchain ID recorded in verdicts: the backend and, for Docker, the
+/// image ID that holds the pinned compilers.
+fn toolchain(backend: &otb_sandbox::Backend) -> Result<ToolchainId, otb_core::IdError> {
+    match backend {
+        otb_sandbox::Backend::Docker { image } => format!("docker:{image}").parse(),
+        otb_sandbox::Backend::UnshareWeaker => format!("{}:host-cc", backend.name()).parse(),
+    }
+}
+
+/// Pending oracles, by milestone, for the report footer.
+fn pending_note(pending: &[OracleKind]) -> String {
+    let names: Vec<&str> = pending.iter().map(|k| k.name()).collect();
+    format!(
+        "pending (no code yet, no verdict): {}",
+        if names.is_empty() {
+            "none".to_owned()
+        } else {
+            names.join(", ")
+        }
+    )
+}
+
+fn outcome_text(o: &Outcome) -> String {
+    match o {
+        Outcome::Pass => "pass".into(),
+        Outcome::Fail { evidence } => format!(
+            "FAIL {} ({}/{} cases; first: {}; {})",
+            selftest::class_name(evidence.class),
+            evidence.cases_failed,
+            evidence.cases_total,
+            evidence.first_failing_case.as_deref().unwrap_or("-"),
+            evidence.detail
+        ),
+        Outcome::Rejected { policy } => format!("REJECTED by admission ({policy})"),
+        Outcome::NotApplicable => "not applicable".into(),
+        Outcome::HarnessError { reason } => format!("HARNESS ERROR {reason}"),
+    }
+}
+
+fn print_run(r: &OracleRun) {
+    println!(
+        "{:38} {:24} {:5} {} cases",
+        r.task,
+        r.oracle.name(),
+        match r.outcome {
+            Outcome::Pass => "pass",
+            Outcome::Rejected { .. } => "REJ",
+            _ => "FAIL",
+        },
+        r.cases
+    );
+    if !r.outcome.is_pass() {
+        println!("{:38}   {}", "", outcome_text(&r.outcome));
+    }
+    for (group, n) in &r.groups {
+        println!("{:38}   {group}: {n}", "");
+    }
+}
+
+fn ref_run(h: &Harness) -> ExitCode {
+    println!("backend: {}", h.backend.name());
     let mut failed = false;
-    for r in otb_harness::reference::run_all(&h) {
+    for r in reference::run_all(h) {
         match r {
             Ok(r) => {
-                let status = match &r.outcome {
-                    otb_core::Outcome::Pass => "pass".to_owned(),
-                    other => {
-                        failed = true;
-                        format!("{other:?}")
-                    }
-                };
-                println!(
-                    "{:38} {:24} {:5} {} cases",
-                    r.task,
-                    r.oracle.name(),
-                    status,
-                    r.cases
-                );
-                for (group, n) in &r.groups {
-                    println!("{:38}   {group}: {n}", "");
-                }
+                failed |= !r.outcome.is_pass();
+                print_run(&r);
             }
             Err(e) => {
                 failed = true;
@@ -110,13 +195,145 @@ fn ref_run(backend: otb_sandbox::Backend) -> ExitCode {
         }
     }
     println!(
-        "not yet implemented: malformed-input, implicit-rejection (M4); ct-valgrind, ct-static-division (M5a); ct-dudect (nightly)"
+        "pending (no code yet): ct-valgrind, ct-static-division (M5a); ct-dudect (nightly, M5a)"
     );
     if failed {
         ExitCode::FAILURE
     } else {
         ExitCode::SUCCESS
     }
+}
+
+fn find_spec(specs: &[TaskSpec], task: &str) -> Result<TaskSpec, String> {
+    specs
+        .iter()
+        .find(|s| s.id.as_str() == task)
+        .cloned()
+        .ok_or_else(|| format!("unknown task {task:?}"))
+}
+
+fn check(
+    h: &Harness,
+    task: &str,
+    candidate: PathBuf,
+    json: bool,
+) -> Result<ExitCode, Box<dyn std::error::Error>> {
+    if matches!(h.backend, otb_sandbox::Backend::UnshareWeaker) {
+        return Err(
+            "candidate code runs only under the Docker backend (ADR-003, GAP-SBX-001)".into(),
+        );
+    }
+    let specs = load_all(&h.repo.join("tasks"))?;
+    let spec = find_spec(&specs, task)?;
+    let candidate = std::path::absolute(candidate)?;
+    let id = CandidateId::from_source(&std::fs::read(&candidate)?)?;
+    let imp = Implementation {
+        label: "candidate".into(),
+        kind: ImplKind::Candidate,
+        source: candidate,
+    };
+    let report = oracles::check(h, &spec, &imp)?;
+    let toolchain = toolchain(&h.backend)?;
+    let mut worst = ExitCode::SUCCESS;
+    let mut verdicts = Vec::new();
+    for r in report.runs {
+        match r {
+            Ok(run) => {
+                if !run.outcome.is_pass() {
+                    worst = ExitCode::FAILURE;
+                }
+                verdicts.push((
+                    Verdict {
+                        task: spec.id.clone(),
+                        candidate: id,
+                        oracle: run.oracle,
+                        outcome: run.outcome.clone(),
+                        toolchain: toolchain.clone(),
+                    },
+                    run,
+                ));
+            }
+            Err(e) => {
+                eprintln!("HARNESS ERROR: {e}");
+                return Ok(ExitCode::from(2));
+            }
+        }
+    }
+    for k in &report.not_applicable {
+        verdicts.push((
+            Verdict {
+                task: spec.id.clone(),
+                candidate: id,
+                oracle: *k,
+                outcome: Outcome::NotApplicable,
+                toolchain: toolchain.clone(),
+            },
+            OracleRun {
+                task: task.to_owned(),
+                oracle: *k,
+                outcome: Outcome::NotApplicable,
+                cases: 0,
+                groups: std::collections::BTreeMap::new(),
+            },
+        ));
+    }
+    verdicts.sort_by_key(|(v, _)| v.oracle);
+    if json {
+        for (v, _) in &verdicts {
+            println!("{}", to_canonical_string(v)?);
+        }
+    } else {
+        println!("task:      {task}");
+        println!("candidate: {id}");
+        println!("toolchain: {toolchain}");
+        for (v, run) in &verdicts {
+            match v.outcome {
+                Outcome::NotApplicable => {
+                    println!("{:38} {:24} not applicable", "", v.oracle.name());
+                }
+                _ => print_run(run),
+            }
+        }
+        println!("{}", pending_note(&report.pending));
+    }
+    Ok(worst)
+}
+
+fn run_selftest(h: &Harness) -> Result<ExitCode, Box<dyn std::error::Error>> {
+    let specs = load_all(&h.repo.join("tasks"))?;
+    println!("backend: {}", h.backend.name());
+    println!(
+        "{:5} {:36} {:24} {:30} observed",
+        "fault", "task", "oracle", "expected"
+    );
+    let rows = selftest::run(h, &specs)?;
+    let (mut held, mut broken, mut pending) = (0, 0, 0);
+    for r in &rows {
+        let mark = if r.pending() {
+            pending += 1;
+            "..."
+        } else if r.holds() {
+            held += 1;
+            "ok"
+        } else {
+            broken += 1;
+            "MISMATCH"
+        };
+        println!(
+            "{:5} {:36} {:24} {:30} {} [{mark}]",
+            r.fault,
+            r.task,
+            r.oracle.name(),
+            r.expected_text(),
+            r.observed_text()
+        );
+    }
+    println!("{held} expectations hold, {broken} do not, {pending} pending");
+    Ok(if broken == 0 && held > 0 {
+        ExitCode::SUCCESS
+    } else {
+        ExitCode::FAILURE
+    })
 }
 
 const MARKER: &str = "<!-- generated by `otb matrix`; do not edit below -->\n";
@@ -167,8 +384,15 @@ fn run(cli: Cli) -> Result<ExitCode, Box<dyn std::error::Error>> {
             Ok(ExitCode::SUCCESS)
         }
         Command::Ref {
-            command: RefCommand::Run { backend, image },
-        } => Ok(ref_run(backend_from(&backend, image)?)),
+            command: RefCommand::Run { sandbox },
+        } => Ok(ref_run(&sandbox.harness()?)),
+        Command::Check {
+            task,
+            candidate,
+            json,
+            sandbox,
+        } => check(&sandbox.harness()?, &task, candidate, json),
+        Command::Selftest { sandbox } => run_selftest(&sandbox.harness()?),
         Command::Matrix { tasks, write } => {
             let generated = render_matrix_markdown(&load_all(&tasks)?);
             match write {

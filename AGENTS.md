@@ -55,6 +55,17 @@ cargo clippy --workspace --all-targets --locked -- -D warnings
 cargo nextest run --workspace --locked
 ```
 
+If the change touches C, the sandbox, an oracle or a seeded fault, also run
+(with Docker and `OTB_SANDBOX_IMAGE` set):
+
+```sh
+cargo run --locked -q --release -p otb-cli -- ref run
+cargo run --locked -q --release -p otb-cli -- selftest
+```
+
+A seeded fault's expectations may be corrected only with the reason
+written in its header; never change an expectation just to match a run.
+
 ## Layout
 
 - `crates/otb-core`: IDs, oracle kinds, verdicts, canonical JSON.

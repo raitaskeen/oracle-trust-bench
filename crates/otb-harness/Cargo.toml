@@ -14,6 +14,7 @@ otb-core.workspace = true
 otb-oracles.workspace = true
 otb-sandbox.workspace = true
 otb-vectors.workspace = true
+serde_json.workspace = true
 thiserror.workspace = true
 
 [lints]

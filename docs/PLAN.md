@@ -31,11 +31,11 @@ no model calls and holds no results. See `protocol/APPLICATION.md`.
 | M0 | Environment: Rust, WSL2 Ubuntu 24.04, Docker, Valgrind | done | `docs/notes/environment.md` |
 | M1 | Workspace, core types, canonical JSON, gaps ledger, CI | done | commit `8ba1463` |
 | M2 | Spec format, five pilot specs, spec-literal FIPS functions | done | commit `a260d48`; `otb tasks validate` |
-| M3 | Vectors, sandbox, C shims, `otb ref run` | done | `800ee3e`, `9003b27`, `2933c29`, `2023fb1` `2d9364b`; `otb ref run` passes on both backends |
-| M4 | Reference-intermediate, malformed-input, implicit-rejection oracles; seeded faults 2-7 | next | |
-| M5a | Constant-time oracles (Valgrind, static division), fault 1, false-positive table | later | |
+| M3 | Vectors, sandbox, C shims, `otb ref run` | done | `800ee3e`, `9003b27`, `2933c29`, `2023fb1`, `2d9364b`; `otb ref run` passes on both backends |
+| M4 | Reference-intermediate, malformed-input, implicit-rejection oracles; admission; seeded faults 2-7 | done | the M4 commit; `otb ref run` passes; `otb selftest` 10/10 expectations hold (`c/seeded-faults/README.md`) |
+| M5a | Constant-time oracles (Valgrind, static division), fault 1, false-positive table | next | |
 | M5b | Runner for model-written test suites, mutants, fault 8 | later | |
-| M6 | `otb selftest`, determinism at 1/4/16 jobs, stats, `otb power` | later | `otb budget` already done (`c88d45f`) |
+| M6 | Determinism at 1/4/16 jobs, `run.json`, stats, `otb power`; selftest in CI as a gate | later | `otb budget` done (`c88d45f`); `otb selftest` exists from M4 |
 | M7 | Documentation and mdBook | later | |
 | M8 | Independent review | later | |
 
@@ -58,6 +58,38 @@ no model calls and holds no results. See `protocol/APPLICATION.md`.
       counts by group for ML-KEM-768 and ML-DSA-65.
 - [x] ML-DSA ACVP parser and spec-literal agreement where it applies
       (pre-hash groups not run: GAP-ACVP-003).
+
+### M4 checklist (done)
+
+- [x] One code path for references, seeded faults and candidates
+      (`Implementation`, ADR-004); failures of the code under test become
+      verdict classes (compile error, crash, timeout, wrong output), never
+      harness errors.
+- [x] Candidate admission check (ADR-004, GAP-ADM-001), with evasion tests.
+- [x] `malformed-input` for T24: FIPS 203 section 7.3 checks 1 and 2,
+      check 3 as task contract (GAP-SPEC-001), and valid-input controls;
+      44 cases, each cross-checked against the spec-literal input check.
+- [x] `implicit-rejection` for T24: 4 keys x (1 valid + 8 modified
+      ciphertexts), K = J(z || c) computed independently; 36 cases.
+- [x] ACVP key-check failures classed as task contract.
+- [x] Seeded faults 2-7 in `c/seeded-faults/`, expectations in their
+      headers; `otb selftest` holds 10/10.
+- [x] `otb check --task ID --candidate FILE [--json]`: canonical verdicts
+      per oracle; Docker only.
+- [x] In-container `timeout` so an orphaned container ends on its own;
+      per-program wall-clock limit 120 s.
+
+### M5a next steps
+
+- [ ] ADR-005 (constant-time method: emitted code at -O2 and -O3 primary,
+      source/IR secondary) and `protocol/PREREGISTRATION.md` draft entry.
+- [ ] `ct-valgrind`: secrets marked undefined via memcheck client requests
+      in the driver (never in the candidate), declassification per spec.
+- [ ] `ct-static-division`: division instructions and division helper calls
+      in emitted code for the pinned targets.
+- [ ] Seeded fault 1 (KyberSlash pattern); CT expectations for faults 2-7.
+- [ ] False-positive table on the references
+      (`docs/oracles/false-positives.md`).
 
 ## Toolchain policy
 

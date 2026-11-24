@@ -432,6 +432,7 @@ dependencies = [
  "otb-oracles",
  "otb-sandbox",
  "otb-vectors",
+ "serde_json",
  "thiserror",
 ]
 

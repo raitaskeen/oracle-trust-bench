@@ -31,6 +31,15 @@ impl SplitMix64 {
         z ^ (z >> 31)
     }
 
+    /// 32 bytes: four outputs, each little-endian.
+    pub fn bytes32(&mut self) -> [u8; 32] {
+        let mut b = [0u8; 32];
+        for chunk in b.chunks_mut(8) {
+            chunk.copy_from_slice(&self.next_u64().to_le_bytes());
+        }
+        b
+    }
+
     /// A value in [0, n), by rejection (no modulo bias).
     pub fn below(&mut self, n: u64) -> u64 {
         assert!(n > 0);

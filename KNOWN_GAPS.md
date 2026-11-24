@@ -112,6 +112,21 @@ Entries are never deleted. A closed gap stays, with its status set to
   ML-DSA-65). No pilot task uses HashML-DSA. The keyGen, internal,
   external-mu and external pure groups run in full.
 
+## GAP-ADM-001 Candidate admission is a lexical policy, not a proof
+
+- Status: open
+- Affects: `otb-harness::admission` (ADR-004)
+- The admission check works on tokens after line splicing, with comments
+  and literals skipped. It rejects inline assembly, pragmas, constructor,
+  destructor and ifunc attributes, token pasting, trigraphs, digraphs,
+  universal character names, Valgrind identifiers and headers outside an
+  allowlist. It does not parse C or run the preprocessor, so it cannot
+  prove that a candidate never reaches an undesired construct by a route
+  the rules do not name. Its purpose is to stop a candidate from tampering
+  with in-process oracles (M5a); it is not the security boundary, which is
+  the sandbox (ADR-003). How rejected candidates count in H1 must be fixed
+  in the pre-registration.
+
 ## GAP-SBX-001 The unshare fallback does not isolate the filesystem
 
 - Status: open

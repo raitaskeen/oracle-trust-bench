@@ -101,3 +101,6 @@ jobs:
 
       - name: Reference run (Docker backend)
         run: cargo run --locked -q --release -p otb-cli -- ref run
+
+      - name: Seeded-fault self-test (every documented outcome must hold)
+        run: cargo run --locked -q --release -p otb-cli -- selftest
