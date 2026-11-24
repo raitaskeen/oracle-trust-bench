@@ -12,10 +12,19 @@
  *
  * No library: admitted and built exactly like a candidate.
  *
+ * Constant time (predicted before the first constant-time run, M5a):
+ * ct-static-division fails, because mod_q takes a 64-bit remainder by q of
+ * a secret value, which 32-bit Arm targets compile to a call to
+ * __aeabi_ldivmod. ct-valgrind passes: the remainder becomes a
+ * multiplication on x86-64 and the sign fix-up a conditional move, neither
+ * of which memcheck reports (GAP-CT-001).
+ *
  * otb-fault: 4
  * otb-task: MLKEM-T01-ntt
  * otb-lib: none
  * otb-expect: reference-intermediate fail wrong-output
+ * otb-expect: ct-valgrind pass
+ * otb-expect: ct-static-division fail variable-time-instruction
  */
 #include <stdint.h>
 

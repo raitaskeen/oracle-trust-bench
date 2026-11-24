@@ -17,12 +17,18 @@
  * or ek are accepted) and acvp (the decapsulationKeyCheck cases with a
  * modified H). implicit-rejection passes.
  *
+ * Constant time (predicted before the first constant-time run, M5a): both
+ * pass. The extra hash covers ek, which is public, and the rest is the
+ * library's constant-time decapsulation.
+ *
  * otb-fault: 3
  * otb-task: MLKEM-T24-decaps-implicit-rejection
  * otb-lib: mlkem
  * otb-expect: acvp fail task-contract
  * otb-expect: malformed-input fail task-contract
  * otb-expect: implicit-rejection pass
+ * otb-expect: ct-valgrind pass
+ * otb-expect: ct-static-division pass
  */
 #define MLK_CONFIG_PARAMETER_SET 768
 #define MLK_CONFIG_NAMESPACE_PREFIX otbk

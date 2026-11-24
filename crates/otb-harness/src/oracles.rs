@@ -20,7 +20,7 @@ use otb_oracles::speclit::{mldsa, mlkem};
 use otb_vectors::mlkem::{EncapDecapFile, Function};
 
 use crate::rng::SplitMix64;
-use crate::{Harness, HarnessError, Implementation, ProgramRun, Tally, admission};
+use crate::{Harness, HarnessError, Implementation, ProgramRun, Tally, admission, ct};
 
 /// One oracle's result on one implementation of one task.
 #[derive(Clone, Debug)]
@@ -44,13 +44,91 @@ pub fn implemented(task: &str) -> &'static [OracleKind] {
         "MLKEM-T01-ntt"
         | "MLKEM-T07-compress-d"
         | "MLDSA-T41-power2round"
-        | "MLDSA-T47-make-hint" => &[OracleKind::ReferenceIntermediate],
+        | "MLDSA-T47-make-hint" => &[
+            OracleKind::ReferenceIntermediate,
+            OracleKind::CtValgrind,
+            OracleKind::CtStaticDivision,
+        ],
         "MLKEM-T24-decaps-implicit-rejection" => &[
             OracleKind::Acvp,
             OracleKind::MalformedInput,
             OracleKind::ImplicitRejection,
+            OracleKind::CtValgrind,
+            OracleKind::CtStaticDivision,
         ],
         _ => &[],
+    }
+}
+
+/// The driver records for a task's `ct-valgrind` run: a few inputs, since
+/// memcheck reports a secret-dependent branch or address whatever the
+/// secret's value is, and runs about 50 times slower than native code.
+///
+/// # Panics
+///
+/// On an unknown task.
+#[must_use]
+pub fn ct_valgrind_input(task: &str) -> Vec<u8> {
+    let mut rng = SplitMix64::from_label(&format!("{task}/ct-valgrind"));
+    let mut bytes = Vec::new();
+    match task {
+        "MLKEM-T01-ntt" => {
+            for _ in 0..2 {
+                for _ in 0..256 {
+                    let c = u16::try_from(rng.below(u64::from(mlkem::Q))).expect("below q");
+                    bytes.extend_from_slice(&c.to_le_bytes());
+                }
+            }
+        }
+        "MLKEM-T07-compress-d" => {
+            for d in mlkem::COMPRESS_D {
+                for x in [0u16, 1, 1664, 1665, 3328] {
+                    bytes.extend_from_slice(&x.to_le_bytes());
+                    bytes.push(u8::try_from(d).expect("d < 12"));
+                }
+            }
+        }
+        "MLDSA-T41-power2round" => {
+            let q = i32::try_from(mldsa::Q).expect("q fits");
+            for r in [0, 1, 4096, 4097, 8191, q - 1] {
+                bytes.extend_from_slice(&r.to_le_bytes());
+            }
+        }
+        "MLDSA-T47-make-hint" => {
+            let q = i32::try_from(mldsa::Q).expect("q fits");
+            let g = i32::try_from(mldsa::GAMMA2_65).expect("fits");
+            for (z, r) in [(0, 0), (1, g), (q - 1, 2 * g), (g, q - 1), (q - g, 12345)] {
+                bytes.extend_from_slice(&i32::to_le_bytes(z));
+                bytes.extend_from_slice(&i32::to_le_bytes(r));
+            }
+        }
+        T24 => {
+            let kc = &key_cases("MLKEM-T24/ct-valgrind", 1)[0];
+            for ct in [kc.ct.clone(), flipped(&kc.ct, 0, 0)] {
+                for part in [&ct, &kc.dk] {
+                    bytes.extend_from_slice(
+                        &u32::try_from(part.len()).expect("small").to_le_bytes(),
+                    );
+                    bytes.extend_from_slice(part);
+                }
+            }
+        }
+        _ => panic!("no ct-valgrind input for {task}"),
+    }
+    bytes
+}
+
+/// The task's C function (the `[c] function` of its spec; a unit test
+/// checks they agree).
+#[must_use]
+pub fn task_function(task: &str) -> &'static str {
+    match task {
+        "MLKEM-T01-ntt" => "ntt",
+        "MLKEM-T07-compress-d" => "compress_d",
+        "MLKEM-T24-decaps-implicit-rejection" => "mlkem768_decaps",
+        "MLDSA-T41-power2round" => "power2round",
+        "MLDSA-T47-make-hint" => "make_hint",
+        _ => "",
     }
 }
 
@@ -94,6 +172,12 @@ pub fn run_oracle(
             &t24_implicit_rejection_cases(),
             "modified ciphertext not answered with J(z || c) and return value 0 (FIPS 203 section 6.3)",
         ),
+        (_, OracleKind::CtValgrind) if implemented(task).contains(&oracle) => {
+            ct::valgrind(h, task, imp, ct_valgrind_input(task))
+        }
+        (_, OracleKind::CtStaticDivision) if implemented(task).contains(&oracle) => {
+            ct::static_division(h, task, task_function(task), imp)
+        }
         _ => Err(HarnessError::Input(format!(
             "no {} oracle for {task}",
             oracle.name()
@@ -726,6 +810,13 @@ mod tests {
                     k.name()
                 );
             }
+        }
+    }
+
+    #[test]
+    fn task_functions_match_the_specs() {
+        for s in &repo_specs() {
+            assert_eq!(task_function(s.id.as_str()), s.c.function, "{}", s.id);
         }
     }
 

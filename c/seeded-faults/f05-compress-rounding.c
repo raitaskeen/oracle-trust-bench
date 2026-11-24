@@ -12,7 +12,11 @@
  *
  * Which oracles must catch it: reference-intermediate (exhaustive over
  * [0, q) for each d). It also divides a secret-derived value by q, the
- * KyberSlash pattern, which ct-static-division is expected to report (M5a).
+ * KyberSlash pattern, like fault 1.
+ *
+ * Constant time (predicted before the first constant-time run, M5a): as
+ * for fault 1, ct-static-division fails on Cortex-M0+ and ct-valgrind
+ * passes (GAP-CT-001).
  *
  * No library: admitted and built exactly like a candidate.
  *
@@ -20,6 +24,8 @@
  * otb-task: MLKEM-T07-compress-d
  * otb-lib: none
  * otb-expect: reference-intermediate fail wrong-output
+ * otb-expect: ct-valgrind pass
+ * otb-expect: ct-static-division fail variable-time-instruction
  */
 #include <stdint.h>
 

@@ -96,8 +96,8 @@ jobs:
         # only the disposable CI runner.
         run: sudo sysctl -w kernel.apparmor_restrict_unprivileged_userns=0
 
-      - name: Isolation tests, both backends (connect() must fail)
-        run: cargo nextest run --locked -p otb-sandbox --run-ignored all
+      - name: Isolation tests (connect() must fail) and Valgrind probe
+        run: cargo nextest run --locked -p otb-sandbox -p otb-harness --run-ignored all
 
       - name: Reference run (Docker backend)
         run: cargo run --locked -q --release -p otb-cli -- ref run

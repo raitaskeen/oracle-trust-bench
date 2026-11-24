@@ -15,17 +15,38 @@ Entries are never deleted. A closed gap stays, with its status set to
   (secret-marked) data. It does not report instructions whose latency depends
   on their operands, such as integer division. The KyberSlash pattern can
   therefore pass `ct-valgrind`. The `ct-static-division` oracle covers this
-  case. To be confirmed against the Valgrind documentation at M5.
+  case.
+- Measured in the pinned image with Valgrind 3.24.0 (M5a): a `divl` with
+  secret operands and a `cmovs` on a secret condition are not reported; a
+  secret-dependent branch and a secret-derived index are
+  (`docs/notes/ct-measurements.md`). `crates/otb-harness/tests/ct_probes.rs`
+  asserts this on every CI run, and seeded fault 1 asserts that the
+  KyberSlash pattern passes `ct-valgrind`. Conditional moves are constant
+  time on current processors, so the second point matters for
+  interpretation, not for timing: whether a source-level `if` passes
+  depends on what the compiler emits.
 
 ## GAP-CT-002 The static division check is conservative and target-specific
 
 - Status: open
 - Affects: `ct-static-division`
-- The primary level checks emitted machine code for one pinned compiler, at
-  -O2 and -O3, on the pinned targets only. Other compilers, flags or targets
-  can add or remove division instructions. The secondary source/IR level
-  flags any division in the task function, including divisions on public
-  data, so it over-reports. It is a diagnostic only (ADR-005).
+- The primary level checks emitted machine code for the pinned compilers
+  and targets only (GCC 14.2 x86-64; Clang 19.1.7 x86-64, AArch64,
+  Cortex-M4, Cortex-M0+; -O2 and -O3; ADR-005). Other compilers, flags or
+  targets can add or remove division instructions; measurement 1 in
+  `docs/notes/ct-measurements.md` shows the KyberSlash pattern survives
+  only on Cortex-M0+.
+- Operands are not traced. Every division reachable from the task function
+  counts, including divisions of public values such as lengths, so the
+  check can over-report for a candidate that divides public data in
+  reachable code. On the five references it reports nothing
+  (`docs/oracles/false-positives.md`).
+- Reachability follows direct references by name and functions whose
+  address appears in data. A function reached only through an address the
+  compiler computes in another way would be missed; none of the references
+  or seeded faults does this.
+- The secondary level (LLVM IR at -O0) is a diagnostic only and never
+  decides an outcome.
 
 ## GAP-CT-003 dudect results are statistical and noisy
 
@@ -43,6 +64,20 @@ Entries are never deleted. A closed gap stays, with its status set to
   depends on data. The oracle matrix declassifies values that FIPS 204 lets
   an implementation reveal. A wrong declassification rule could hide a real
   leak or report a false one.
+
+## GAP-CT-005 Cross targets are compiled against declaration-only headers
+
+- Status: open
+- Affects: `ct-static-division` on the AArch64, Cortex-M4 and Cortex-M0+
+  configurations
+- The image has a C library only for x86-64. For the other targets the
+  implementation is compiled to assembly against Clang's own freestanding
+  headers plus `c/harness/ct-include/` (declarations of the `string.h` and
+  `stdlib.h` functions the admission policy allows). A candidate that needs
+  a declaration those headers lack does not compile for that target; the
+  oracle then reports the configuration as "not compiled" and decides on
+  the others, so coverage for that candidate is smaller. The run record
+  shows which configurations compiled.
 
 ## GAP-ACVP-001 ACVP covers top-level functions only
 

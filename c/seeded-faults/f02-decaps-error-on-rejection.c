@@ -20,12 +20,20 @@
  * the first selftest run showed the control is an implicit rejection,
  * which a unit test now asserts.)
  *
+ * Constant time (predicted before the first constant-time run, M5a):
+ * ct-valgrind fails, because memcmp over the secret shared secret and the
+ * branch on its result depend on secrets, so the rejection also leaks
+ * through timing. ct-static-division passes: the fault adds no division,
+ * and the library's code reachable from decapsulation has none.
+ *
  * otb-fault: 2
  * otb-task: MLKEM-T24-decaps-implicit-rejection
  * otb-lib: mlkem
  * otb-expect: acvp fail wrong-return-code
  * otb-expect: malformed-input fail wrong-return-code
  * otb-expect: implicit-rejection fail wrong-return-code
+ * otb-expect: ct-valgrind fail secret-dependent-branch
+ * otb-expect: ct-static-division pass
  */
 #define MLK_CONFIG_PARAMETER_SET 768
 #define MLK_CONFIG_NAMESPACE_PREFIX otbk

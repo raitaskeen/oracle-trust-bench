@@ -13,6 +13,7 @@
 #![allow(clippy::missing_panics_doc)]
 
 pub mod admission;
+pub mod ct;
 pub mod oracles;
 pub mod reference;
 pub mod rng;
@@ -260,12 +261,44 @@ impl Harness {
         input: Vec<u8>,
         expected_len: usize,
     ) -> Result<ProgramRun, HarnessError> {
+        let out = self.run_impl_script(
+            imp,
+            |lib_include| {
+                format!(
+                    "cc -std=c11 -O2 -I\"$OTB_IN/harness\"{lib_include} -DOTB_TASK_{task_flag} \
+                     \"$OTB_IN/harness/drivers.c\" \"$OTB_IN/impl/impl.c\" -o \"$OTB_WORK/prog\" \
+                     && echo {BUILD_OK} >&2 && exec \"$OTB_WORK/prog\""
+                )
+            },
+            input,
+            task_limits(expected_len),
+        )?;
+        Ok(classify(&out, expected_len))
+    }
+
+    /// Stages `imp` (as `$OTB_IN/impl/impl.c`), the driver files, the
+    /// cross-target headers (`$OTB_IN/harness/ct-include`) and, if the kind
+    /// allows it, the library (`$OTB_IN/lib`); then runs the shell script
+    /// that `script` builds from the library include flag (empty when no
+    /// library is staged). Used by every oracle that builds an
+    /// implementation (ADR-004).
+    pub fn run_impl_script(
+        &self,
+        imp: &Implementation,
+        script: impl FnOnce(&str) -> String,
+        input: Vec<u8>,
+        limits: Limits,
+    ) -> Result<otb_sandbox::Outcome, HarnessError> {
         let stage = new_stage()?;
         let harness_dir = stage.0.join("harness");
         std::fs::create_dir_all(&harness_dir)?;
         for f in DRIVER_FILES {
             std::fs::copy(self.repo.join("c/harness").join(f), harness_dir.join(f))?;
         }
+        copy_dir(
+            &self.repo.join("c/harness/ct-include"),
+            &harness_dir.join("ct-include"),
+        )?;
         std::fs::create_dir_all(stage.0.join("impl"))?;
         std::fs::copy(self.path(&imp.source), stage.0.join("impl/impl.c"))?;
         let lib_include = match imp.kind.library() {
@@ -275,19 +308,13 @@ impl Harness {
             }
             None => "",
         };
-        let script = format!(
-            "cc -std=c11 -O2 -I\"$OTB_IN/harness\"{lib_include} -DOTB_TASK_{task_flag} \
-             \"$OTB_IN/harness/drivers.c\" \"$OTB_IN/impl/impl.c\" -o \"$OTB_WORK/prog\" \
-             && echo {BUILD_OK} >&2 && exec \"$OTB_WORK/prog\""
-        );
         let job = Job {
             input_dir: stage.0.clone(),
-            argv: vec!["sh".into(), "-c".into(), script],
+            argv: vec!["sh".into(), "-c".into(), script(lib_include)],
             stdin: input,
-            limits: task_limits(expected_len),
+            limits,
         };
-        let out = otb_sandbox::run(&self.backend, &job)?;
-        Ok(classify(&out, expected_len))
+        Ok(otb_sandbox::run(&self.backend, &job)?)
     }
 
     /// Builds `sources` (file names in `c/harness`) with `flags` against

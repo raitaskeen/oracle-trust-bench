@@ -194,9 +194,7 @@ fn ref_run(h: &Harness) -> ExitCode {
             }
         }
     }
-    println!(
-        "pending (no code yet): ct-valgrind, ct-static-division (M5a); ct-dudect (nightly, M5a)"
-    );
+    println!("pending (no code yet): ct-dudect (nightly only, reported separately; GAP-CT-003)");
     if failed {
         ExitCode::FAILURE
     } else {

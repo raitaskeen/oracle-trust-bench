@@ -13,6 +13,12 @@ All C here runs only inside the sandbox (ADR-001, ADR-003).
   mlkem-native and mldsa-native (pinned submodules), built as single
   compilation units with the portable C backend only.
 
+- With `-DOTB_CT_VALGRIND` the driver marks each task's secret inputs
+  undefined for Valgrind memcheck before the call and its outputs defined
+  after it (`ct-valgrind`, ADR-005). The secrets per task are written next
+  to each driver and follow the task specs.
+- `ct-include/` holds declaration-only `string.h` and `stdlib.h` for the
+  compile-only cross targets of `ct-static-division` (GAP-CT-005).
 - `acvp_mldsa.c` is a whole program (not a task implementation) that runs
   the ML-DSA-65 ACVP vectors against mldsa-native.
 

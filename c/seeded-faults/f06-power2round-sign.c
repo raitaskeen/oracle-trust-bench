@@ -14,10 +14,17 @@
  *
  * No library: admitted and built exactly like a candidate.
  *
+ * Constant time (predicted before the first constant-time run, M5a): both
+ * pass. There is no division, and the conditional assignment is expected
+ * to compile to a conditional move, which memcheck does not report
+ * (GAP-CT-001).
+ *
  * otb-fault: 6
  * otb-task: MLDSA-T41-power2round
  * otb-lib: none
  * otb-expect: reference-intermediate fail wrong-output
+ * otb-expect: ct-valgrind pass
+ * otb-expect: ct-static-division pass
  */
 #include <stdint.h>
 

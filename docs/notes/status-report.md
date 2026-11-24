@@ -1,7 +1,7 @@
-# Status report and guide (after M4)
+# Status report and guide (after M5a)
 
 First written after M3 (commit `2d9364b`); updated 24 Nov 2026 at the
-commit that closed M4. Every number below names the command that
+commits that closed M4 (`a405a06`) and M5a. Every number below names the command that
 produced it; judgements are marked as judgements.
 
 No model has been run; no results yet. This repository builds the
@@ -22,15 +22,16 @@ verification side of "The Oracle-Trust Gap" (`protocol/APPLICATION.md`).
 | Malformed-input oracle (M4) | T24: wrong ciphertext and key lengths (FIPS 203 section 7.3 checks 1 and 2), the per-call dk hash check (task contract), and valid-input controls; 44 cases | `crates/otb-harness/src/oracles.rs` |
 | Implicit-rejection oracle (M4) | T24: 4 keys x 8 modified ciphertexts must return 0 and J(z ‖ c), computed independently in Rust; 36 cases | same |
 | Admission check (M4) | Rejects candidate code that could tamper with in-process oracles (inline asm, pragmas, constructors, token pasting, trigraphs, disallowed headers...) before it is compiled | ADR-004; GAP-ADM-001 |
-| Seeded faults 2-7 (M4) | Six hand-written faulty implementations; `otb selftest` checks each against the outcomes its header documents | `c/seeded-faults/README.md` |
+| Seeded faults 1-7 (M4, M5a) | Seven hand-written faulty implementations; `otb selftest` checks each against the outcomes its header documents | `c/seeded-faults/README.md` |
+| Constant-time oracles (M5a) | `ct-valgrind`: secrets marked undefined by the driver, GCC 14.2 at -O2 and -O3 under Valgrind memcheck. `ct-static-division`: divisions reachable from the task function in emitted code, 10 configurations (x86-64, AArch64, Cortex-M4, Cortex-M0+), plus an IR diagnostic | ADR-005; `docs/notes/ct-measurements.md`; `docs/oracles/false-positives.md` |
 | `otb check` (M4) | Judges one candidate C file: admission, then every applicable implemented oracle; canonical verdict JSON with `--json` | ADR-004 |
 | Budget | Port of `analysis/budget.py`; both print `TOTAL 955.98` | `otb budget`; CI step "Budget" |
-| CI | fmt, clippy (pedantic, `-D warnings`), cargo-deny, cargo-audit, spec validation, budget check, tests with the network removed; sandbox job with Docker, `otb ref run` and `otb selftest` | `.github/workflows/ci.yml`. On GitHub the jobs have not started yet: GitHub refuses Actions minutes on the private repository because of an account billing problem; no test has failed |
-| Rules and records | AGENTS.md, CONTRIBUTING.md (review order), TESTING.md, PLAN.md, four ADRs, KNOWN_GAPS.md (13 entries; `grep -c '^## GAP-' KNOWN_GAPS.md`), AI_ASSISTANCE.md | the files themselves |
+| CI | fmt, clippy (pedantic, `-D warnings`), cargo-deny, cargo-audit, spec validation, budget check, tests with the network removed; sandbox job with Docker, the Valgrind probe, `otb ref run` and `otb selftest` | `.github/workflows/ci.yml`. On GitHub the jobs have not started yet: GitHub refuses Actions minutes on the private repository because of an account billing problem; no test has failed |
+| Rules and records | AGENTS.md, CONTRIBUTING.md (review order), TESTING.md, PLAN.md, five ADRs, draft PREREGISTRATION.md, KNOWN_GAPS.md (14 entries; `grep -c '^## GAP-' KNOWN_GAPS.md`), AI_ASSISTANCE.md | the files themselves |
 
-Size (`git ls-files` piped to `wc -l`, at the M4 commit): 6644 lines of
-Rust in six crates, 685 lines of C (harness and seeded faults), 26
-Markdown files.
+Size (`git ls-files` piped to `wc -l`, at the M5a commit): 7758 lines of
+Rust in six crates, 928 lines of C (harness, probes and seeded faults),
+30 Markdown files.
 
 ### `otb ref run`, Docker backend
 
@@ -43,19 +44,26 @@ Markdown files.
 | MLKEM-T24 decapsulation | acvp | pass | 20 (10 with a modified ciphertext or H) |
 | MLKEM-T24 decapsulation | malformed-input | pass | 44 |
 | MLKEM-T24 decapsulation | implicit-rejection | pass | 36 |
+| All five tasks | ct-valgrind | pass | 2 builds (-O2, -O3) each |
+| All five tasks | ct-static-division | pass | 10 configurations each |
 | ML-DSA-65 reference build | acvp | pass | 160 (45 pre-hash cases not covered, GAP-ACVP-003) |
 
-Wall-clock: 8 s. Tests: `cargo nextest run --workspace --locked
---run-ignored all` with the image set, 85 run, 85 passed.
+Wall-clock: 92 s (most of it compiling the libraries ten times for the
+division check). Tests: `cargo nextest run --workspace --locked
+--run-ignored all` with the image set, 95 run, 95 passed.
 
 ### `otb selftest`, Docker backend
 
-10 expectations hold, 0 do not (full table in `c/seeded-faults/README.md`).
+25 expectations hold, 0 do not (full table in `c/seeded-faults/README.md`).
 Highlights: fault 5 (off-by-one rounding) is wrong on only 5 of 16,645
 inputs and is found by the exhaustive check; fault 7 (one flipped
 comparison) is wrong on 98 of 1,000,340 inputs, found by the boundary
 cases; fault 3 (no per-call key hash check) is reported as a
-`task-contract` failure, not a FIPS violation.
+`task-contract` failure, not a FIPS violation; fault 1 (a correct
+Compress_d that divides by q, the KyberSlash pattern) passes every
+functional check and Valgrind and is caught only by the emitted-code
+division check on Cortex-M0+; for fault 7 the compiler itself turned a
+subtraction loop into a division on a secret.
 
 ### `otb check` on three hand-written candidates (MLKEM-T07)
 
@@ -78,19 +86,21 @@ It **can**:
   reference, ACVP), exhaustively where the input domain allows;
 - for ML-KEM decapsulation, check the FIPS 203 input checks and implicit
   rejection, not only the happy path;
-- prove its own oracles work: six seeded faults, each caught as documented;
+- check constant time: secret-dependent branches and memory addresses
+  (Valgrind) and divisions in the emitted code for four targets;
+- prove its own oracles work: seven seeded faults, each caught as
+  documented, blind spots included;
 - prove the sandbox blocks the network and kills runaway jobs.
 
 It **cannot yet**:
 
-- check constant-time behaviour: Valgrind and emitted-code division
-  checks (M5a, ADR-005); these are applicable to every pilot task and are
-  listed as pending, without a verdict;
+- run dudect timing tests (nightly only, on the subsample; pending);
 - run model-written test suites or mutants (M5b);
 - write a `run.json`, check determinism at 1/4/16 jobs, or run the
   statistics or the power grid (M6);
-- serve as a public benchmark: no README, PREREGISTRATION.md, THREAT_MODEL
-  or mdBook yet (M7), and no independent review (M8).
+- serve as a public benchmark: no README, THREAT_MODEL or mdBook yet, and
+  PREREGISTRATION.md is a draft with one decided entry (M7); no
+  independent review (M8).
 
 ## 2a. Who can use this, and for what
 
@@ -102,7 +112,9 @@ Stated in terms of the study; no product claims.
 - **Developers of post-quantum code** get a harness that checks a C
   implementation of an ML-KEM or ML-DSA component against FIPS 203/204,
   the NIST ACVP vectors and the pinned references, including the error
-  paths (input checks, implicit rejection) that happy-path tests miss.
+  paths (input checks, implicit rejection) that happy-path tests miss,
+  and constant-time checks that look at what the compiler actually
+  emitted for embedded and server targets.
 - **Reviewers and auditors** get a list of the fault patterns that slip
   past weak tests (the seeded faults) and the exact oracle that catches
   each, plus a ledger of what the oracles cannot see (`KNOWN_GAPS.md`).
@@ -116,12 +128,12 @@ it is not software for sale.
 |---|---|---|
 | Engineering foundation | 8/10 | Pinned toolchain, image and actions; strict lints; sandbox tested; one code path for every implementation; every gap recorded. Loses points because CI has never run on GitHub and the image is not yet fixed by digest (GAP-ENV-002). |
 | Correctness evidence | 8/10 | Exhaustive or near-exhaustive checks where the domain allows; ACVP agreement; every generated case cross-checked against the spec-literal code; oracles proven on seeded faults. ACVP sets are small example sets (GAP-ACVP-002), and the reference is trusted by agreement, not proof (GAP-REF-001). |
-| Completeness against the plan | 5/10 | M0-M4 of M0-M8 done. Constant-time oracles, the test-suite runner, determinism, statistics and public docs remain. |
-| Documentation | 6/10 | Internal docs are thorough; the public-facing README and pre-registration do not exist yet (M7). |
-| **Overall as a finished benchmark today** | **6/10** | Judges candidates end to end for correctness, input checks and implicit rejection; not yet for constant time. |
+| Completeness against the plan | 6/10 | M0-M5a of M0-M8 done. The test-suite runner, determinism, statistics and public docs remain. |
+| Documentation | 6/10 | Internal docs are thorough, with measurements behind each design choice; the public-facing README does not exist yet and the pre-registration is a draft (M7). |
+| **Overall as a finished benchmark today** | **7/10** | Judges candidates end to end on every oracle the application names except dudect; cannot yet judge the model-written test suites (M5b), which the main hypothesis needs. |
 | Expected at M8 if the plan holds | 8/10 | Assuming M5-M7 land as planned and the independent review finds nothing structural. |
 
-(After M3 the overall judgement was 4/10.)
+(After M3 the overall judgement was 4/10; after M4, 6/10.)
 
 ## 4. Remaining work and time (estimates)
 
@@ -133,7 +145,7 @@ apt reported "Fetched 152 MB in 1h 34min 48s (26.7 kB/s)".
 | Milestone | Work | Estimate |
 |---|---|---|
 | M4 | Done in one session | - |
-| M5a | ADR-005; Valgrind secret-marking oracle; emitted-code division check at -O2 and -O3; fault 1; false-positive table | 2 sessions |
+| M5a | Done in one session | - |
 | M5b | Runner for model-written test suites; mutants; fault 8 | 1-2 sessions |
 | M6 | `run.json`; determinism at 1/4/16 jobs; statistics; `otb power` grid | 1-2 sessions |
 | M7 | README, PREREGISTRATION.md (draft), THREAT_MODEL, mdBook | 1 session |

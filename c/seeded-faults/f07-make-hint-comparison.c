@@ -14,10 +14,24 @@
  *
  * No library: admitted and built exactly like a candidate.
  *
+ * Constant time: ct-valgrind fails, because the reduction loops run a
+ * secret-dependent number of times. ct-static-division also fails. The
+ * prediction written before the first constant-time run (M5a) said it
+ * would pass, since the source has no / or %. The first run showed that
+ * Clang turns the repeated-subtraction loop `while (rp >= Q) rp -= Q;` in
+ * high_bits into urem and udiv by q (visible in its -O2 LLVM IR); on
+ * Cortex-M0+ those become calls to __aeabi_uidivmod and __aeabi_uidiv on
+ * the secret rp, while the other targets turn them into multiplications.
+ * The compiler introduced a variable-time division the source does not
+ * contain. This is why the emitted code, not the source, is the primary
+ * level (ADR-005).
+ *
  * otb-fault: 7
  * otb-task: MLDSA-T47-make-hint
  * otb-lib: none
  * otb-expect: reference-intermediate fail wrong-output
+ * otb-expect: ct-valgrind fail secret-dependent-branch
+ * otb-expect: ct-static-division fail variable-time-instruction
  */
 #include <stdint.h>
 

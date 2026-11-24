@@ -421,7 +421,7 @@ mod tests {
         let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let faults = load_faults(&repo).unwrap();
         let numbers: Vec<u32> = faults.iter().map(|f| f.number).collect();
-        assert_eq!(numbers, [2, 3, 4, 5, 6, 7]);
+        assert_eq!(numbers, [1, 2, 3, 4, 5, 6, 7]);
         let specs = otb_core::spec::load_all(&repo.join("tasks")).unwrap();
         for f in &faults {
             let spec = specs.iter().find(|s| s.id.as_str() == f.task).unwrap();

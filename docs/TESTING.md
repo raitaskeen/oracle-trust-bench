@@ -14,6 +14,7 @@ says what is tested, how, and where.
 | Vector tests | Spec-literal code matches every vendored ACVP case | `crates/otb-oracles/tests/` | every CI run |
 | Reference run (`otb ref run`) | Every applicable oracle passes on the C references | CLI, in the sandbox | every CI run (from M3) |
 | Seeded-fault self-test (`otb selftest`) | Every oracle catches the faults it should, and misses only the documented blind spots | CLI, in the sandbox; expectations in each `c/seeded-faults/*.c` header | every CI run (from M4); every expectation must hold |
+| Valgrind probe (`ct_probes.rs`) | memcheck still reports secret-dependent branches and addresses, and still misses division and conditional moves (the documented blind spots, GAP-CT-001) | `crates/otb-harness/tests/ct_probes.rs`, in the sandbox | every CI run (sandbox job) |
 | Admission tests | Each admission rule rejects what it names, and the known evasions (line splicing, trigraphs, digraphs, token pasting, universal character names) are caught | `crates/otb-harness/src/admission.rs` | every CI run |
 | Determinism | Verdict files are byte-identical across reruns and at 1, 4 and 16 jobs | CI script | every CI run (from M6) |
 | Golden tests (`insta`) | Report output does not change by accident | `otb-cli` | every CI run (from M6) |
@@ -57,18 +58,20 @@ cargo run --locked -q --release -p otb-cli -- selftest
 
 ## Current numbers
 
-Produced on 24 Nov 2026 at the commit that closed M4:
+Produced on 24 Nov 2026 at the commit that closed M5a:
 
-- `cargo nextest run --workspace --locked`: 80 tests run, 80 passed,
-  5 skipped (the sandbox isolation tests, which need Docker and
-  `OTB_SANDBOX_IMAGE`).
+- `cargo nextest run --workspace --locked`: 89 tests run, 89 passed,
+  6 skipped (the sandbox isolation tests and the Valgrind probe, which need
+  Docker and `OTB_SANDBOX_IMAGE`).
 - The same with `--run-ignored all` and `OTB_SANDBOX_IMAGE` set to the
-  local image: 85 tests run, 85 passed.
+  local image: 95 tests run, 95 passed.
 - `otb ref run` (Docker): every implemented oracle passes on every
-  reference; 8 s wall-clock.
-- `otb selftest` (Docker): 10 expectations hold, 0 do not, 0 pending;
-  7 s wall-clock. Output in `c/seeded-faults/README.md`.
+  reference (18 oracle runs, including both constant-time oracles on all
+  five tasks); 92 s wall-clock.
+- `otb selftest` (Docker): 25 expectations hold, 0 do not, 0 pending;
+  48 s wall-clock. Output in `c/seeded-faults/README.md`.
 
-Earlier records: at the M3 close (`2d9364b`), 63 run and 63 passed (68
+Earlier records: at the M4 close (`a405a06`), 80 run and 80 passed (85
+with Docker), selftest 10/10; at the M3 close (`2d9364b`), 63 run and 63 passed (68
 with Docker); at `c88d45f`, 55 run and 55 passed, also with the network
 removed (`unshare -r -n`).

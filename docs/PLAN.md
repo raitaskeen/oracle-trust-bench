@@ -32,9 +32,9 @@ no model calls and holds no results. See `protocol/APPLICATION.md`.
 | M1 | Workspace, core types, canonical JSON, gaps ledger, CI | done | commit `8ba1463` |
 | M2 | Spec format, five pilot specs, spec-literal FIPS functions | done | commit `a260d48`; `otb tasks validate` |
 | M3 | Vectors, sandbox, C shims, `otb ref run` | done | `800ee3e`, `9003b27`, `2933c29`, `2023fb1`, `2d9364b`; `otb ref run` passes on both backends |
-| M4 | Reference-intermediate, malformed-input, implicit-rejection oracles; admission; seeded faults 2-7 | done | the M4 commit; `otb ref run` passes; `otb selftest` 10/10 expectations hold (`c/seeded-faults/README.md`) |
-| M5a | Constant-time oracles (Valgrind, static division), fault 1, false-positive table | next | |
-| M5b | Runner for model-written test suites, mutants, fault 8 | later | |
+| M4 | Reference-intermediate, malformed-input, implicit-rejection oracles; admission; seeded faults 2-7 | done | `a405a06`; `otb ref run` passes; `otb selftest` 10/10 expectations held at M4 |
+| M5a | Constant-time oracles (Valgrind, static division), fault 1, false-positive table | done | the M5a commit; ADR-005; `otb ref run` passes every oracle; `otb selftest` 25/25 (`c/seeded-faults/README.md`); `docs/oracles/false-positives.md` |
+| M5b | Runner for model-written test suites, mutants, fault 8 | next | |
 | M6 | Determinism at 1/4/16 jobs, `run.json`, stats, `otb power`; selftest in CI as a gate | later | `otb budget` done (`c88d45f`); `otb selftest` exists from M4 |
 | M7 | Documentation and mdBook | later | |
 | M8 | Independent review | later | |
@@ -79,17 +79,34 @@ no model calls and holds no results. See `protocol/APPLICATION.md`.
 - [x] In-container `timeout` so an orphaned container ends on its own;
       per-program wall-clock limit 120 s.
 
-### M5a next steps
+### M5a checklist (done)
 
-- [ ] ADR-005 (constant-time method: emitted code at -O2 and -O3 primary,
-      source/IR secondary) and `protocol/PREREGISTRATION.md` draft entry.
-- [ ] `ct-valgrind`: secrets marked undefined via memcheck client requests
-      in the driver (never in the candidate), declassification per spec.
-- [ ] `ct-static-division`: division instructions and division helper calls
-      in emitted code for the pinned targets.
-- [ ] Seeded fault 1 (KyberSlash pattern); CT expectations for faults 2-7.
-- [ ] False-positive table on the references
-      (`docs/oracles/false-positives.md`).
+- [x] Measurements first (`docs/notes/ct-measurements.md`): where division
+      by q survives (only Cortex-M0+ at -O2/-O3), what memcheck reports
+      (branches and addresses; not division, not conditional moves).
+- [x] ADR-005 and the draft entry D1 in `protocol/PREREGISTRATION.md`, with
+      four points left for the author to confirm before filing.
+- [x] `ct-valgrind`: the driver marks the spec's secrets undefined (T24:
+      dk_PKE and z only; the spec now says so), GCC 14.2 at -O2 and -O3.
+- [x] `ct-static-division`: 10 emitted-code configurations, division
+      instructions and helpers, counted only when reachable from the task
+      function; LLVM IR -O0 count as a diagnostic.
+- [x] Reference adapters for T01 and T47 made constant time (they used %
+      and a branch around the library).
+- [x] Seeded fault 1; CT expectations for faults 2-7 written before the
+      first run; 24 of 25 held, fault 7's corrected with the reason.
+- [x] False-positive table: 0/5 for both CT oracles on the references.
+- [x] `ct_probes.rs` asserts the Valgrind blind spots in CI.
+
+### M5b next steps
+
+- [ ] Fixed test-file ABI (C `main` plus a harness-supplied `OTB_ASSERT`
+      that counts assertions) and a runner that executes a test suite in
+      the sandbox against the candidate, the reference and mutants.
+- [ ] Mutant set per task (hand-written, documented like the faults).
+- [ ] Validity rules: at least 5 assertions, kills at least 1 mutant,
+      passes on the reference.
+- [ ] Seeded fault 8 and its weak "model-style" test file.
 
 ## Toolchain policy
 
