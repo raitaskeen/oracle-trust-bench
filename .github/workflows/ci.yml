@@ -9,9 +9,12 @@ on:
 permissions:
   contents: read
 
+# A newer push to a pull request cancels the older run. Runs on main are
+# never cancelled: each commit there keeps its own result (a re-run of an
+# older commit once cancelled the newest run).
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
   CARGO_TERM_COLOR: never
