@@ -48,6 +48,15 @@ jobs:
       - name: Validate task specs
         run: cargo run --locked -q -p otb-cli -- tasks validate
 
+      - name: Budget (otb budget and analysis/budget.py print the same total)
+        run: |
+          otb_total="$(cargo run --locked -q -p otb-cli -- budget | grep '^TOTAL' | tr -s ' ')"
+          py_total="$(python3 analysis/budget.py | grep '^TOTAL' | tr -s ' ')"
+          echo "otb budget:          ${otb_total}"
+          echo "analysis/budget.py:  ${py_total}"
+          test "${otb_total}" = "${py_total}"
+          test "${otb_total}" = "TOTAL 955.98"
+
       - name: Build tests (network allowed)
         run: cargo nextest run --workspace --locked --no-run
 

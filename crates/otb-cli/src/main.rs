@@ -3,6 +3,8 @@
 use std::path::PathBuf;
 use std::process::ExitCode;
 
+mod budget;
+
 use clap::{Parser, Subcommand};
 use otb_core::spec::{load_all, render_matrix_markdown};
 
@@ -20,6 +22,8 @@ enum Command {
         #[command(subcommand)]
         command: TasksCommand,
     },
+    /// Recompute the API credit request (port of analysis/budget.py).
+    Budget,
     /// Print the task-by-oracle applicability matrix.
     Matrix {
         /// Directory holding the task specs.
@@ -83,6 +87,10 @@ fn run(cli: Cli) -> Result<ExitCode, Box<dyn std::error::Error>> {
             } else {
                 ExitCode::FAILURE
             })
+        }
+        Command::Budget => {
+            print!("{}", budget::render());
+            Ok(ExitCode::SUCCESS)
         }
         Command::Matrix { tasks, write } => {
             let generated = render_matrix_markdown(&load_all(&tasks)?);
