@@ -1,0 +1,21 @@
+[package]
+name = "otb-vectors"
+description = "Strict parsers for NIST ACVP ML-KEM and ML-DSA test vector files."
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+publish.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+
+[lints]
+workspace = true

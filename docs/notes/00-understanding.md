@@ -162,7 +162,7 @@ Result codes:
 | mlkem-native has `MLK_CONFIG_CT_TESTING_ENABLED`, using Valgrind `MAKE_MEM_UNDEFINED/DEFINED` | OK. Equivalent mldsa-native switch not found, so it will be checked at M5 |
 | Both libraries are tested against all ACVP vectors (`test/acvp`) and Wycheproof | OK |
 | ACVP folders `ML-KEM-encapDecap-FIPS203` and `ML-DSA-sigGen-FIPS204`, each with prompt / expectedResults / internalProjection / registration / validation JSON | OK |
-| ACVP folders `ML-KEM-keyGen-FIPS203`, `ML-DSA-keyGen-FIPS204`, `ML-DSA-sigVer-FIPS204` | NO, not yet seen. To check at M3 before use |
+| ACVP folders `ML-KEM-keyGen-FIPS203`, `ML-DSA-keyGen-FIPS204`, `ML-DSA-sigVer-FIPS204` | OK (M3): all five folders fetched at commit 975de31e; see `NOTICE.md` |
 | ACVP ML-KEM functions: encapsulation, decapsulation, encapsulationKeyCheck, decapsulationKeyCheck. Decaps VAL vectors include "randomly modified" ciphertexts on the implicit-rejection path; the dk check includes "modified H" | OK. Official vectors cover part of the implicit-rejection and hash-check oracles |
 | ACVP seed-format field name (`d`/`z` vs `seed`) is inconsistent inside the spec | OK, the inconsistency is confirmed. The parser must be tested on real files |
 | Latest commit touching `gen-val/json-files`: a7f283cdc87d2d6dd93c1bac59e5622c5f9f8324 (31 Jul 2026) | PART. This is not the branch head; pin at M3 |

@@ -77,3 +77,15 @@ Entries are never deleted. A closed gap stays, with its status set to
 - WSL2 is installed but cannot start until the machine is rebooted and
   hardware virtualization is enabled. Until then, steps that compile or run
   C code run only in Linux CI.
+
+## GAP-ACVP-002 The ACVP vectors are published example sets with few cases
+
+- Status: open
+- Affects: `acvp`, and validation of the spec-literal reference
+- The vendored files are the example vector sets in the ACVP-Server
+  repository, not a validation session (`isSample` is true for
+  ML-KEM-encapDecap and false for the other four files). For ML-KEM-768 they hold
+  25 keyGen, 25 encapsulation, 10 decapsulation (5 with a modified
+  ciphertext) and 10 decapsulation-key-check cases. Passing them is
+  necessary evidence, not exhaustive evidence. The `malformed-input` and
+  `implicit-rejection` oracles add seeded generated cases.

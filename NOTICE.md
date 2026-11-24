@@ -11,13 +11,17 @@
 
 ## Third-party material
 
-Each entry gives the source URL, the pinned revision and the licence. Entries
-are added when the material is added (milestone M3 and later). Nothing
-third-party is vendored yet.
+Each entry gives the source URL, the pinned revision and the licence.
 
 | Material | Source | Revision | Licence | Used for |
 |---|---|---|---|---|
-| (none yet) | | | | |
+| ACVP sample vectors: `ML-KEM-keyGen-FIPS203`, `ML-KEM-encapDecap-FIPS203`, `ML-DSA-keyGen-FIPS204`, `ML-DSA-sigGen-FIPS204`, `ML-DSA-sigVer-FIPS204` (`internalProjection.json` only) | https://github.com/usnistgov/ACVP-Server, `gen-val/json-files/` | commit `975de31eb83d87039ec88934fdc47d8c312b892d` | NIST public-software notice: NIST-developed software is not subject to copyright protection within the United States (see the repository README). No SPDX identifier. | `acvp` oracle; validation of the spec-literal reference |
+
+The vendored files are byte-identical to the source; their SHA-256 hashes
+are in `third_party/acvp/SHA256SUMS`. The files' `isSample` flag is `true` for
+`ML-KEM-encapDecap-FIPS203` and `false` for the other four. All five are
+example vector sets published in the ACVP-Server repository, not vectors
+from a validation session run for this study (GAP-ACVP-002).
 
 ## Standards cited
 
