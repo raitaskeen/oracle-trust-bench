@@ -15,8 +15,9 @@ All C (references, drivers, seeded faults and candidates) runs through
 `otb-sandbox`, which has two backends.
 
 **Docker (default; required for candidate code).** One container per job,
-from the image built by `docker/Dockerfile` (Debian 13.8 pinned by digest,
-packages from one dated `snapshot.debian.org` archive), with:
+from the image built by `docker/Dockerfile` (Debian 13.8 pinned by digest;
+compilers and tools pinned to exact Debian package versions, so a build
+fails rather than installing a different compiler), with:
 
 - `--network=none`;
 - `--read-only` root filesystem; tmpfs scratch at `/work` and `/tmp`;

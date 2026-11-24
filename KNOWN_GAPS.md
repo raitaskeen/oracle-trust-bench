@@ -78,6 +78,17 @@ Entries are never deleted. A closed gap stays, with its status set to
 - WSL2 could not start until the machine was rebooted and virtualization
   was enabled. Both are now done.
 
+## GAP-ENV-002 The candidate image is not bit-for-bit reproducible
+
+- Status: open
+- Affects: every oracle that compiles or runs C
+- `docker/Dockerfile` pins the base image by digest and every compiler and
+  tool package by exact version, so rebuilds install the same software.
+  The resulting image ID still differs between builds (layer timestamps),
+  and a pinned version can disappear from deb.debian.org, which makes the
+  build fail. Before the pre-registration is filed, one image must be
+  fixed by content digest and archived, and every run record must name it.
+
 ## GAP-ACVP-002 The ACVP vectors are published example sets with few cases
 
 - Status: open

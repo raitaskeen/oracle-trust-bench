@@ -28,3 +28,33 @@ Checks run here on 24 Nov 2026 at commit `d248392`: fmt, clippy
 (`-D warnings`), 55/55 tests (also with the network removed),
 `cargo deny` and `cargo audit` all pass; `otb budget` and
 `python3 analysis/budget.py` both print `TOTAL 955.98`.
+
+## Candidate image (M3)
+
+Built on 24 Nov 2026 from `docker/Dockerfile` with
+`docker build -t otb-candidate:dev docker/` (packages from
+deb.debian.org, exact versions pinned in the Dockerfile).
+
+| Item | Value | Command |
+|---|---|---|
+| Image ID | `sha256:d07dce05bd48c4d3b894505ff5f9bde94e06f058574e5ca33046fa64aad77ed9` | `docker image inspect otb-candidate:dev --format '{{.Id}}'` |
+| GCC | gcc (Debian 14.2.0-19) 14.2.0 | `docker run --rm otb-candidate:dev gcc --version` |
+| Clang | Debian clang version 19.1.7 (3+b1) | `docker run --rm otb-candidate:dev clang --version` |
+| Valgrind | valgrind-3.24.0 | `docker run --rm otb-candidate:dev valgrind --version` |
+| User | uid=10001(otb) gid=10001(otb) | `docker run --rm otb-candidate:dev id` |
+
+The image ID is local to this build: a rebuild of the same Dockerfile
+installs the same package versions but gets a new ID (layer timestamps
+differ). CI builds its own image and passes its ID through
+`OTB_SANDBOX_IMAGE`. Fixing one image by content digest for the main run
+is still open (GAP-ENV-002).
+
+With `OTB_SANDBOX_IMAGE` set to the ID above:
+
+- `cargo nextest run --locked -p otb-sandbox --run-ignored all`: 9 tests
+  run, 9 passed, including `docker_blocks_connect`,
+  `unshare_fallback_blocks_connect`, the wall-clock kill on both backends
+  and the read-only root and input mount under Docker.
+- `otb ref run` (Docker backend): every check passes; T41 8380417 cases,
+  T47 1000340, T01 1258, T07 16645, T24 ACVP 20, ML-DSA-65 ACVP 160
+  (45 pre-hash cases not covered, GAP-ACVP-003); 16 s wall-clock.

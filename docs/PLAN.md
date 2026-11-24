@@ -31,7 +31,7 @@ no model calls and holds no results. See `protocol/APPLICATION.md`.
 | M0 | Environment: Rust, WSL2 Ubuntu 24.04, Docker, Valgrind | done | `docs/notes/environment.md` |
 | M1 | Workspace, core types, canonical JSON, gaps ledger, CI | done | commit `ff78dee` |
 | M2 | Spec format, five pilot specs, spec-literal FIPS functions | done | commit `b7e5923`; `otb tasks validate` |
-| M3 | Vectors, sandbox, C shims, `otb ref run` | in progress | part 1 (vectors, spec-literal ML-KEM vs ACVP) in `8d8e2fa` |
+| M3 | Vectors, sandbox, C shims, `otb ref run` | done | `8d8e2fa`, `9c0cac6`, `70bf205`, `86343cd` and the M3-close commit; `otb ref run` passes on both backends |
 | M4 | Reference-intermediate, malformed-input, implicit-rejection oracles; seeded faults 2-7 | next | |
 | M5a | Constant-time oracles (Valgrind, static division), fault 1, false-positive table | later | |
 | M5b | Runner for model-written test suites, mutants, fault 8 | later | |
@@ -39,23 +39,25 @@ no model calls and holds no results. See `protocol/APPLICATION.md`.
 | M7 | Documentation and mdBook | later | |
 | M8 | Independent review | later | |
 
-### M3 remaining work
+### M3 checklist (done)
 
-- [ ] Container image: Dockerfile on `debian:trixie-slim` pinned by digest
+- [x] Container image: Dockerfile on `debian:trixie-slim` pinned by digest
       (`sha256:8aa5a7bf5a1955bddbe7d74fcdd0b91ab30e74362a8b73af672b0481b35b44a0`,
-      Debian 13.8), with Debian's GCC, Clang and Valgrind; the built image
-      pinned by digest.
-- [ ] `otb-sandbox`: Docker backend (`--network none`, `--read-only`, tmpfs
+      Debian 13.8), with Debian's GCC, Clang and Valgrind pinned to exact
+      package versions; the built image is referenced by its ID in each run
+      (`docs/notes/environment.md`).
+- [x] `otb-sandbox`: Docker backend (`--network none`, `--read-only`, tmpfs
       scratch, pids, memory, CPU and wall-clock limits) and the weaker
       `prlimit` + `unshare` fallback, labelled weaker everywhere.
-- [ ] Test: a candidate calling `connect()` fails under both backends.
-- [ ] Submodules: mlkem-native v2.0.0 and mldsa-native v2.0.0, pinned by
+- [x] Test: a candidate calling `connect()` fails under both backends.
+- [x] Submodules: mlkem-native v2.0.0 and mldsa-native v2.0.0, pinned by
       full commit SHA; recorded in `NOTICE.md`.
-- [ ] C shims (fixed ABI per task, binary framing for bulk vectors) for the
+- [x] C shims (fixed ABI per task, binary framing for bulk vectors) for the
       references, portable C backend only.
-- [ ] `otb ref run`: references through every applicable oracle; ACVP
+- [x] `otb ref run`: references through every applicable oracle; ACVP
       counts by group for ML-KEM-768 and ML-DSA-65.
-- [ ] ML-DSA ACVP parser and spec-literal agreement where it applies.
+- [x] ML-DSA ACVP parser and spec-literal agreement where it applies
+      (pre-hash groups not run: GAP-ACVP-003).
 
 ## Toolchain policy
 

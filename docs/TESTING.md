@@ -52,6 +52,13 @@ cargo run --locked -q -p otb-cli -- tasks validate
 
 ## Current numbers
 
-Produced by `cargo nextest run --workspace --locked` on 24 Nov 2026, at
-commit `d248392`: 55 tests run, 55 passed. The same 55 pass with the network
-removed (`unshare -r -n`).
+Produced on 24 Nov 2026 at the commit that closed M3:
+
+- `cargo nextest run --workspace --locked`: 63 tests run, 63 passed,
+  5 skipped (the sandbox isolation tests, which need Docker and
+  `OTB_SANDBOX_IMAGE`).
+- The same with `--run-ignored all` and `OTB_SANDBOX_IMAGE` set to the
+  local image (`docs/notes/environment.md`): 68 tests run, 68 passed.
+
+Earlier record: at commit `d248392`, 55 run and 55 passed, also with the
+network removed (`unshare -r -n`).
