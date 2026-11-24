@@ -20,7 +20,7 @@ signature = "int mlkem768_decaps(uint8_t ss[32], const uint8_t *ct, size_t ct_le
 returns = "0 for every ciphertext of the correct length, whether decapsulation succeeds or implicitly rejects, and ss is always written. Nonzero only when an input check fails."
 
 [secrets]
-inputs = ["dk: the decapsulation key, including the implicit-rejection value z"]
+inputs = ["dk_PKE and z: the secret parts of dk = dk_PKE || ek || H(ek) || z (FIPS 203 Algorithm 19); ek and H(ek) are public"]
 public_outputs = []
 
 [oracles.reference-intermediate]
@@ -37,7 +37,7 @@ applies = true
 method = "A modified ct must give ss = J(z || c), computed independently, and the same return value as the valid path (FIPS 203 section 6.3: the implicit-reject flag must not be returned in any form)."
 [oracles.ct-valgrind]
 applies = true
-method = "dk marked undefined before the call. Built with the pinned compiler at -O2 and at -O3, no sanitizers. Covers the ciphertext comparison and the selection of the shared secret."
+method = "dk_PKE and z marked undefined before the call (ek and H(ek) are public). Built with the pinned compiler at -O2 and at -O3, no sanitizers. Covers the ciphertext comparison and the selection of the shared secret."
 [oracles.ct-static-division]
 applies = true
 method = "Primary: emitted machine code at -O2 and -O3 for the pinned targets. Secondary diagnostic: LLVM IR at -O0 (ADR-005)."

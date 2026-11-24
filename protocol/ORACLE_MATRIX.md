@@ -70,7 +70,7 @@ of date.
 - **acvp** (applies): ML-KEM-encapDecap-FIPS203 vectors at a pinned ACVP-Server commit: every ML-KEM-768 decapsulation test case, and every decapsulationKeyCheck test case. Counts reported by test group.
 - **malformed-input** (applies): Wrong ct_len (FIPS 203 section 7.3 check 1, required on every call) and wrong dk_len (check 2) must return nonzero. Task contract, stricter than FIPS 203: the dk hash check (check 3, Eq. 7.2) must run on every call; a failure here is a task-contract violation, not a FIPS violation (GAP-SPEC-001).
 - **implicit-rejection** (applies): A modified ct must give ss = J(z || c), computed independently, and the same return value as the valid path (FIPS 203 section 6.3: the implicit-reject flag must not be returned in any form).
-- **ct-valgrind** (applies): dk marked undefined before the call. Built with the pinned compiler at -O2 and at -O3, no sanitizers. Covers the ciphertext comparison and the selection of the shared secret.
+- **ct-valgrind** (applies): dk_PKE and z marked undefined before the call (ek and H(ek) are public). Built with the pinned compiler at -O2 and at -O3, no sanitizers. Covers the ciphertext comparison and the selection of the shared secret.
 - **ct-static-division** (applies): Primary: emitted machine code at -O2 and -O3 for the pinned targets. Secondary diagnostic: LLVM IR at -O0 (ADR-005).
 - **ct-dudect** (applies): Draft subsample member. Two input classes (valid ct versus modified ct), fixed measurement budget, threshold |t| > 10. Nightly only, reported separately (GAP-CT-003).
 - **differential** (N/A): Differential fuzzing belongs to Arm 3 (C-to-Rust migration), not Arm 1 tasks.

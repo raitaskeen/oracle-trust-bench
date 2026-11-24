@@ -29,12 +29,17 @@ static int32_t otb_high_bits(int32_t r) {
 
 /* MLDSA-T47: FIPS 204 Algorithm 39, MakeHint(z, r) =
  * [HighBits(r) != HighBits(r + z)], with r + z reduced to [0, q).
- * mldsa-native's own make_hint takes decomposed inputs and is not used. */
+ * mldsa-native's own make_hint takes decomposed inputs and is not used.
+ *
+ * The task domain is z, r in [0, q), so r + z - q lies in [-q, q - 2] and
+ * one conditional addition of q, done with a sign mask, reduces it in
+ * constant time. (An earlier version used % and a branch; the
+ * constant-time oracles would rightly flag that, M5a.) */
 int make_hint(int32_t z, int32_t r, int32_t gamma2) {
   (void)gamma2;
-  int64_t s = ((int64_t)r + z) % OTB_DSA_Q;
-  if (s < 0) s += OTB_DSA_Q;
-  return otb_high_bits(r) != otb_high_bits((int32_t)s);
+  int32_t s = r + z - OTB_DSA_Q;
+  s += (int32_t)((uint32_t)(s >> 31) & (uint32_t)OTB_DSA_Q);
+  return otb_high_bits(r) != otb_high_bits(s);
 }
 
 /* The harness never generates keys or randomness: every input is given.

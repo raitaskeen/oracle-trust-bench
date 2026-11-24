@@ -16,21 +16,17 @@
 
 #include "tasks.h"
 
-#define OTB_Q 3329
-
-/* Canonical representative in [0, q). */
-static int16_t otb_mod_q(int32_t a) {
-  int32_t r = a % OTB_Q;
-  return (int16_t)(r < 0 ? r + OTB_Q : r);
-}
-
 /* MLKEM-T01: mlkem-native's forward NTT (output bounded by 8q in absolute
- * value, not reduced), then reduced to [0, q) as the task requires. */
+ * value, not reduced), then mlkem-native's poly_reduce, which maps every
+ * int16 coefficient to its canonical representative in [0, q) in constant
+ * time, as the task requires. (An earlier version reduced with % and a
+ * branch; the constant-time oracles would rightly flag that, M5a.) */
 void ntt(int16_t f[256]) {
   mlk_poly p;
   for (int i = 0; i < 256; i++) p.coeffs[i] = f[i];
   otbk_poly_ntt(&p);
-  for (int i = 0; i < 256; i++) f[i] = otb_mod_q(p.coeffs[i]);
+  otbk_poly_reduce(&p);
+  for (int i = 0; i < 256; i++) f[i] = p.coeffs[i];
 }
 
 /* MLKEM-T07: mlkem-native's scalar compression for each supported d. */
