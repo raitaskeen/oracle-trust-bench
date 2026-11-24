@@ -90,6 +90,17 @@ Entries are never deleted. A closed gap stays, with its status set to
   necessary evidence, not exhaustive evidence. The `malformed-input` and
   `implicit-rejection` oracles add seeded generated cases.
 
+## GAP-ACVP-003 ML-DSA pre-hash ACVP groups are not run
+
+- Status: open
+- Affects: the ML-DSA-65 reference-build check in `otb ref run`
+- HashML-DSA (FIPS 204 Algorithms 4 and 5) needs the pre-hash computed with
+  the hash function each case names (SHA-2, SHA-3 and SHAKE variants).
+  mldsa-native does not provide these hashes, so the pre-hash sigGen and
+  sigVer groups are counted and reported as "not covered" (45 cases for
+  ML-DSA-65). No pilot task uses HashML-DSA. The keyGen, internal,
+  external-mu and external pure groups run in full.
+
 ## GAP-SBX-001 The unshare fallback does not isolate the filesystem
 
 - Status: open

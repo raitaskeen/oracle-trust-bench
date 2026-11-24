@@ -141,15 +141,41 @@ impl Harness {
         input: Vec<u8>,
         expected_len: usize,
     ) -> Result<Vec<u8>, HarnessError> {
-        let stage = self.stage(lib)?;
         let adapter = Path::new(lib.adapter())
             .file_name()
             .and_then(|s| s.to_str())
             .expect("adapter has a file name");
+        self.run_program(
+            &format!("{task_flag} reference"),
+            lib,
+            &["drivers.c", adapter],
+            &format!("-DOTB_TASK_{task_flag}"),
+            input,
+            expected_len,
+        )
+    }
+
+    /// Builds `sources` (file names in `c/harness`) with `flags` against
+    /// `lib`, runs the program on `input`, and returns its stdout, which must
+    /// be exactly `expected_len` bytes.
+    pub fn run_program(
+        &self,
+        label: &str,
+        lib: Library,
+        sources: &[&str],
+        flags: &str,
+        input: Vec<u8>,
+        expected_len: usize,
+    ) -> Result<Vec<u8>, HarnessError> {
+        let stage = self.stage(lib)?;
+        let files: Vec<String> = sources
+            .iter()
+            .map(|s| format!("\"$OTB_IN/harness/{s}\""))
+            .collect();
         let script = format!(
-            "cc -std=c11 -O2 -I\"$OTB_IN/harness\" -I\"$OTB_IN/lib\" -DOTB_TASK_{task_flag} \
-             \"$OTB_IN/harness/drivers.c\" \"$OTB_IN/harness/{adapter}\" -o \"$OTB_WORK/prog\" \
-             && exec \"$OTB_WORK/prog\""
+            "cc -std=c11 -O2 -I\"$OTB_IN/harness\" -I\"$OTB_IN/lib\" {flags} {} \
+             -o \"$OTB_WORK/prog\" && exec \"$OTB_WORK/prog\"",
+            files.join(" ")
         );
         let job = Job {
             input_dir: stage.0.clone(),
@@ -161,7 +187,7 @@ impl Harness {
                 ..Limits::default()
             },
         };
-        let what = format!("{task_flag} reference ({})", self.backend.name());
+        let what = format!("{label} ({})", self.backend.name());
         let out = otb_sandbox::run(&self.backend, &job)?;
         if !out.success() {
             return Err(HarnessError::Program {

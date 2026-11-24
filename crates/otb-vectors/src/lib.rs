@@ -7,6 +7,7 @@
 //! vendored under `third_party/acvp/` at a pinned commit (see `NOTICE.md`).
 
 pub mod hex;
+pub mod mldsa;
 pub mod mlkem;
 
 use std::path::Path;
