@@ -1,6 +1,6 @@
 # Status report and guide (after M3)
 
-Written 24 Nov 2026 at commit `2472daa`. Every number below names the
+Written 24 Nov 2026 at commit `2d9364b`. Every number below names the
 command that produced it; judgements are marked as judgements.
 
 No model has been run; no results yet. This repository builds the
@@ -96,43 +96,31 @@ apt reported "Fetched 152 MB in 1h 34min 48s (26.7 kB/s)".
 
 ## 5. Publishing on GitHub
 
-Nothing has been pushed. The repository has no remote; it exists only
-in WSL at `~/projects/oracle-trust-bench`. Claude does not push, create
-remotes or publish; you do.
+**Done, private.** At the author's request in chat (24 Nov 2026) the
+repository was created as a private repository at
+`https://github.com/raitaskeen/oracle-trust-bench` and `main` was pushed.
+Before the push:
 
-### When
+- every commit was rewritten to the author
+  `Taskeen Haider <137790592+raitaskeen@users.noreply.github.com>` (ID from
+  `https://api.github.com/users/raitaskeen`); the file trees are unchanged
+  and commit hashes cited in the docs were updated;
+- tracked files were checked: nothing under `inputs/`, and the only email
+  addresses are GitHub noreply addresses.
 
-1. **Now, as a private repository**: safe, and it gives you an off-machine
-   backup and a first real CI run. Recommended.
-2. **Public**: after M7, when the README states "No model has been run;
-   no results yet" and PREREGISTRATION.md exists. It must be public, with
-   the pre-registration timestamped, **before** any model is run, because
-   that is what makes the study pre-registered.
+**Public:** after M7, when the README states "No model has been run; no
+results yet" and PREREGISTRATION.md exists. It must be public, with the
+pre-registration timestamped, **before** any model is run, because that
+is what makes the study pre-registered. Visibility changes only on the
+author's request.
 
-### Before the first push
-
-1. Find your numeric GitHub ID (open `https://api.github.com/users/raitaskeen`
-   in a browser and read `"id"`), and tell Claude. Every commit is currently
-   authored as `raitaskeen@users.noreply.github.com`, without the ID; Claude
-   will rewrite all unpushed commits to `ID+raitaskeen@users.noreply.github.com`.
-2. Check that nothing private is tracked: `git status --short` should be
-   empty and `git ls-files inputs` should print nothing.
-
-### Commands (in the WSL terminal)
-
-Create an empty **private** repository named `oracle-trust-bench` on
-github.com (no README, licence or .gitignore, so histories do not clash),
-then:
+To push later work yourself from WSL (no `gh` there), let Git borrow the
+Windows GitHub CLI login for one command:
 
 ```sh
-cd ~/projects/oracle-trust-bench
-git remote add origin https://github.com/raitaskeen/oracle-trust-bench.git
-git push -u origin main
+git -c credential.helper='!"/mnt/c/Program Files/GitHub CLI/gh.exe" auth git-credential' push
 ```
 
-GitHub asks for a username and a personal access token (not your
-password) on the first push; create the token under Settings, Developer
-settings, Personal access tokens, with access to this one repository.
 The submodules point to their public upstream repositories, so they need
 nothing extra.
 

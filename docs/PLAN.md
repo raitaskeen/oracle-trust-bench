@@ -29,13 +29,13 @@ no model calls and holds no results. See `protocol/APPLICATION.md`.
 | # | Milestone | Status | Evidence |
 |---|---|---|---|
 | M0 | Environment: Rust, WSL2 Ubuntu 24.04, Docker, Valgrind | done | `docs/notes/environment.md` |
-| M1 | Workspace, core types, canonical JSON, gaps ledger, CI | done | commit `ff78dee` |
-| M2 | Spec format, five pilot specs, spec-literal FIPS functions | done | commit `b7e5923`; `otb tasks validate` |
-| M3 | Vectors, sandbox, C shims, `otb ref run` | done | `8d8e2fa`, `9c0cac6`, `70bf205`, `86343cd` and the M3-close commit; `otb ref run` passes on both backends |
+| M1 | Workspace, core types, canonical JSON, gaps ledger, CI | done | commit `8ba1463` |
+| M2 | Spec format, five pilot specs, spec-literal FIPS functions | done | commit `a260d48`; `otb tasks validate` |
+| M3 | Vectors, sandbox, C shims, `otb ref run` | done | `800ee3e`, `9003b27`, `2933c29`, `2023fb1` `2d9364b`; `otb ref run` passes on both backends |
 | M4 | Reference-intermediate, malformed-input, implicit-rejection oracles; seeded faults 2-7 | next | |
 | M5a | Constant-time oracles (Valgrind, static division), fault 1, false-positive table | later | |
 | M5b | Runner for model-written test suites, mutants, fault 8 | later | |
-| M6 | `otb selftest`, determinism at 1/4/16 jobs, stats, `otb power` | later | `otb budget` already done (`d248392`) |
+| M6 | `otb selftest`, determinism at 1/4/16 jobs, stats, `otb power` | later | `otb budget` already done (`c88d45f`) |
 | M7 | Documentation and mdBook | later | |
 | M8 | Independent review | later | |
 

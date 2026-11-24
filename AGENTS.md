@@ -41,7 +41,9 @@ pricing, market or startup wording.
 9. **Small scope.** Build only what the pilot needs. An abstraction needs two
    real uses. No plugin system, web UI, database or dashboard.
 10. **Git.** Small commits with clear messages. Never push, add a remote,
-    tag a release or open a pull request: the author does that.
+    tag a release, open a pull request or change the repository's
+    visibility unless the author asks for that specific action in chat.
+    The repository stays private until M7 is done.
 11. **Known gaps.** Cite limits by their ID in `KNOWN_GAPS.md`. The test
     `crates/otb-core/tests/known_gaps.rs` fails on an undefined ID.
 

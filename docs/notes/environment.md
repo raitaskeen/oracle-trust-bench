@@ -24,7 +24,7 @@ reference C is compiled only inside the pinned image (ADR-001, ADR-005).
 Unprivileged network namespaces work on this host (`unshare -r -n true`),
 so the weaker fallback sandbox is available.
 
-Checks run here on 24 Nov 2026 at commit `d248392`: fmt, clippy
+Checks run here on 24 Nov 2026 at commit `c88d45f`: fmt, clippy
 (`-D warnings`), 55/55 tests (also with the network removed),
 `cargo deny` and `cargo audit` all pass; `otb budget` and
 `python3 analysis/budget.py` both print `TOTAL 955.98`.
