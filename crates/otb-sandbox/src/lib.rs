@@ -191,6 +191,12 @@ pub fn docker_args(image: &str, job: &Job, name: &str) -> Vec<String> {
     a.push("--env=OTB_WORK=/work".to_owned());
     a.push("--workdir=/work".to_owned());
     a.push(image.to_owned());
+    // A second wall-clock limit inside the container, 10 s after the
+    // harness's own, so the container ends even if the harness process
+    // dies and cannot kill it.
+    a.push("timeout".to_owned());
+    a.push("--signal=KILL".to_owned());
+    a.push(format!("{}s", l.wall.as_secs() + 10));
     a.extend(job.argv.iter().cloned());
     a
 }
@@ -387,9 +393,13 @@ mod tests {
         ] {
             assert!(a.iter().any(|x| x == flag), "missing {flag}: {a:?}");
         }
-        // The image comes right before the command.
+        // The image comes right before the in-container time limit (the
+        // harness limit, 60 s here, plus 10 s), then the command.
         let i = a.iter().position(|x| x == "sha256:abc").unwrap();
-        assert_eq!(&a[i + 1..], ["sh", "-c", "true"]);
+        assert_eq!(
+            &a[i + 1..],
+            ["timeout", "--signal=KILL", "70s", "sh", "-c", "true"]
+        );
     }
 
     #[test]
