@@ -196,6 +196,10 @@ cargo run -q --release -p otb-cli -- suite \
     --candidate my_compress.c                            # judge a test suite
 ```
 
+If you cloned without `--recurse-submodules`, `third_party/mlkem-native`
+and `third_party/mldsa-native` are empty; fetch them with
+`git submodule update --init` before building.
+
 `otb check` prints one line per oracle; `--json` prints canonical verdict
 records instead. Candidate code runs only under Docker. A weaker fallback
 backend (`--backend unshare`, no filesystem isolation, GAP-SBX-001) exists
@@ -240,6 +244,25 @@ are secret (GAP-CT-002); the ACVP files are small example sets
 (GAP-REF-001); the admission check is lexical (GAP-ADM-001); mutants
 are first-order and their equivalence is decided by the oracles
 (GAP-MUT-001).
+
+## Glossary
+
+| Term | Meaning here |
+|---|---|
+| ML-KEM (FIPS 203) | NIST's post-quantum key-encapsulation standard, derived from CRYSTALS-Kyber |
+| ML-DSA (FIPS 204) | NIST's post-quantum digital-signature standard, derived from CRYSTALS-Dilithium |
+| ACVP | NIST's Automated Cryptographic Validation Protocol; its published vector sets give inputs with known correct outputs |
+| Oracle | An independent, non-LLM check that decides whether a candidate is correct for one property |
+| Reference | A verified implementation of a task: spec-literal Rust plus mlkem-native/mldsa-native, trusted only where they agree (GAP-REF-001) |
+| Candidate | A C file implementing one task function, judged by the oracles |
+| Admission check | The policy check a candidate must pass before it is compiled ([ADR-004](docs/adr/ADR-004-implementations-and-admission.md)) |
+| Seeded fault | A hand-written faulty implementation that proves an oracle catches what it claims |
+| Mutant | A small, automatically generated change to a reference, used to judge whether a test suite is strong enough |
+| False assurance | A candidate passes its own valid test suite but fails an applicable oracle |
+| Constant time | Branches and memory addresses do not depend on secret data, and no variable-time instruction such as division touches it |
+| KyberSlash | A class of timing leaks caused by secret-dependent division in Kyber/ML-KEM code |
+| Implicit rejection | On a modified ciphertext, ML-KEM decapsulation returns the key J(z ‖ c) instead of an error, so an attacker learns nothing |
+| Pre-registration | Fixing the hypotheses and analysis plan before any data is collected |
 
 ## Repository layout
 
