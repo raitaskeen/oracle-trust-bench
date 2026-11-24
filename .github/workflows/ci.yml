@@ -1,0 +1,58 @@
+# Continuous integration. Third-party actions are pinned by full commit SHA;
+# the tag each SHA points to is noted beside it. Permissions are read-only.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: never
+  RUST_BACKTRACE: "1"
+
+jobs:
+  rust:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install the pinned toolchain (rust-toolchain.toml)
+        run: rustup show active-toolchain || rustup toolchain install
+
+      - uses: taiki-e/install-action@fe3acb53a98b62c772db35de75ce0e4595e7ca8c # v2.90.8
+        with:
+          tool: cargo-nextest,cargo-deny,cargo-audit
+
+      - name: Format
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets --locked -- -D warnings
+
+      - name: Licences, bans and sources
+        run: cargo deny --locked check licenses bans sources
+
+      - name: Advisories
+        run: cargo audit --deny warnings
+
+      - name: Build tests (network allowed)
+        run: cargo nextest run --workspace --locked --no-run
+
+      - name: Confirm the network namespace has no interfaces but loopback
+        run: sudo unshare --net -- sh -c 'test "$(ip -o link | grep -cv " lo:")" -eq 0'
+
+      - name: Tests with the network disabled
+        run: >
+          sudo unshare --net --
+          sudo -u "$USER" env "PATH=$PATH" "HOME=$HOME"
+          cargo nextest run --workspace --locked --offline
