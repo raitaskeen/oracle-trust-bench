@@ -65,6 +65,10 @@ cargo run --locked -q --release -p otb-cli -- ref run
 cargo run --locked -q --release -p otb-cli -- selftest
 ```
 
+If it touches a mutation base, the mutant generator or a functional oracle,
+also run `otb mutants verify`. A changed base needs a new manifest from
+`otb mutants classify`, committed in the same change, with the reason.
+
 A seeded fault's expectations may be corrected only with the reason
 written in its header; never change an expectation just to match a run.
 

@@ -410,6 +410,7 @@ dependencies = [
  "otb-core",
  "otb-harness",
  "otb-sandbox",
+ "serde_json",
 ]
 
 [[package]]
@@ -432,7 +433,9 @@ dependencies = [
  "otb-oracles",
  "otb-sandbox",
  "otb-vectors",
+ "serde",
  "serde_json",
+ "sha2",
  "thiserror",
 ]
 

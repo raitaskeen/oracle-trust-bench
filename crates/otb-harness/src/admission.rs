@@ -78,12 +78,29 @@ fn reject(policy: impl Into<String>, line: usize) -> Result<(), Rejection> {
     })
 }
 
-/// Checks `source` against the admission policy.
+/// Checks `source` (a candidate implementation) against the admission
+/// policy.
 ///
 /// # Errors
 ///
 /// The first rule the source breaks.
 pub fn check(source: &[u8]) -> Result<(), Rejection> {
+    check_as(source, false)
+}
+
+/// Checks a model-written test file (ADR-006): the candidate policy, plus
+/// `otb_test.h` among the allowed headers, and no `#define` or `#undef` of
+/// a name starting with `OTB_` or `otb_` (policy `harness-name`), so a suite
+/// cannot replace `OTB_ASSERT` or the harness's counters.
+///
+/// # Errors
+///
+/// The first rule the source breaks.
+pub fn check_test_file(source: &[u8]) -> Result<(), Rejection> {
+    check_as(source, true)
+}
+
+fn check_as(source: &[u8], test_file: bool) -> Result<(), Rejection> {
     if source.len() > MAX_SOURCE_BYTES {
         return reject("size", 0);
     }
@@ -109,6 +126,7 @@ pub fn check(source: &[u8]) -> Result<(), Rejection> {
         s: &text,
         line_of: &line_of,
         pos: 0,
+        test_file,
     }
     .run()
 }
@@ -150,6 +168,8 @@ struct Scanner<'a> {
     s: &'a [u8],
     line_of: &'a [usize],
     pos: usize,
+    /// True when checking a test file (ADR-006).
+    test_file: bool,
 }
 
 fn is_ident_start(b: u8) -> bool {
@@ -254,6 +274,14 @@ impl Scanner<'_> {
         if !ALLOWED_DIRECTIVES.contains(&name.as_str()) {
             return reject(format!("directive:{name}"), line);
         }
+        if self.test_file && (name == "define" || name == "undef") {
+            self.skip_blank()?;
+            let macro_name = self.ident().to_ascii_lowercase();
+            if macro_name.starts_with("otb_") {
+                return reject("harness-name", line);
+            }
+            return Ok(());
+        }
         if name != "include" {
             return Ok(());
         }
@@ -273,7 +301,8 @@ impl Scanner<'_> {
         }
         let header = String::from_utf8_lossy(&self.s[start..self.pos]).into_owned();
         self.pos += 1;
-        if !ALLOWED_HEADERS.contains(&header.as_str()) {
+        let test_header = self.test_file && header == "otb_test.h";
+        if !ALLOWED_HEADERS.contains(&header.as_str()) && !test_header {
             return reject(format!("header:{header}"), line);
         }
         self.skip_blank()?;
@@ -449,6 +478,27 @@ uint16_t compress_d(uint16_t x, unsigned d) {
         assert_eq!(policy(&big).as_deref(), Some("size"));
         let fits = " ".repeat(MAX_SOURCE_BYTES);
         assert_eq!(policy(&fits), None);
+    }
+
+    #[test]
+    fn test_files_get_otb_test_h_but_cannot_redefine_harness_names() {
+        let suite = "#include \"otb_test.h\"\n#include \"tasks.h\"\n#define N 3\nint main(void) { OTB_ASSERT(compress_d(0, 1) == 0); return 0; }\n";
+        assert_eq!(check_test_file(suite.as_bytes()), Ok(()));
+        // A candidate may not include the test header.
+        assert_eq!(policy(suite).as_deref(), Some("header:otb_test.h"));
+        for bad in [
+            "#define OTB_ASSERT(x) ((void)0)\n",
+            "#undef OTB_ASSERT\n",
+            "#define otb_assert_record(a, b, c) ((void)0)\n",
+        ] {
+            let r = check_test_file(bad.as_bytes()).unwrap_err();
+            assert_eq!(r.policy, "harness-name", "{bad}");
+        }
+        // The candidate rules still apply to tests.
+        assert_eq!(
+            check_test_file(b"#include <stdio.h>\n").unwrap_err().policy,
+            "header:stdio.h"
+        );
     }
 
     #[test]

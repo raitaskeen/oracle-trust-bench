@@ -40,6 +40,33 @@ reported separately and do not enter H1.
 4. how candidates rejected by admission count in H1 (ADR-004,
    GAP-ADM-001).
 
+### D2. Self-test validity and the H1 denominator (ADR-006)
+
+A model-written test suite uses the interface in
+`c/harness/test-abi/otb_test.h` and counts as a test suite only if it:
+
+1. passes the admission policy for test files;
+2. compiles and **passes on the task's verified reference** (the mutation
+   base in `c/mutation-base/`);
+3. executes **at least 5 assertions** on the reference;
+4. **kills at least one mutant** from the committed mutant set
+   (`c/mutation-base/<task>.mutants.json`; only mutants that a functional
+   oracle kills count).
+
+Rules 3 and 4 are from the application; rule 2 is added because a suite
+that fails on a verified reference is not testing the task. An
+implementation "passes its own model-written test suite" (H1's
+denominator) if its suite is valid and passes on it. The mutation score
+(killed / counted mutants) is reported for every suite.
+
+**Open, for the author to confirm before filing:**
+
+1. the added rule 2;
+2. the mutation operators and the committed mutant sets (121 mutants, 103
+   counted; GAP-MUT-001), cited by the manifests' base hashes;
+3. how implementations with an invalid suite are reported (today: outside
+   the H1 denominator, counted separately).
+
 ## To be written at M7
 
 Hypotheses and outcome definitions as in the application; task sample and

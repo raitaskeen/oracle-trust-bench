@@ -27,6 +27,7 @@ use otb_core::spec::TaskSpec;
 use otb_core::{FailureClass, OracleKind, Outcome};
 
 use crate::oracles::{self, OracleRun};
+use crate::suite::{self, RunResult, SuiteReport};
 use crate::{Harness, HarnessError, ImplKind, Implementation, Library};
 
 /// What an oracle must conclude about a fault.
@@ -86,6 +87,32 @@ pub struct Fault {
     pub lib: Option<Library>,
     /// Expected outcome per oracle.
     pub expect: BTreeMap<OracleKind, Expectation>,
+    /// A test suite written for this fault (`otb-suite`), and what must
+    /// happen to it (`otb-expect-suite: valid|invalid pass|fail`).
+    pub suite: Option<(PathBuf, SuiteExpectation)>,
+}
+
+/// What must happen to a fault's test suite.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct SuiteExpectation {
+    /// The suite is valid by the study's rules.
+    pub valid: bool,
+    /// The suite passes on the fault.
+    pub passes_on_fault: bool,
+}
+
+impl SuiteExpectation {
+    fn render(self) -> String {
+        format!(
+            "{}, {} on the fault",
+            if self.valid { "valid" } else { "invalid" },
+            if self.passes_on_fault {
+                "passes"
+            } else {
+                "fails"
+            }
+        )
+    }
 }
 
 impl Fault {
@@ -105,12 +132,18 @@ impl Fault {
 /// # Errors
 ///
 /// A missing, repeated or malformed header line.
+///
+/// One match over the header keys, kept together so the format is read in
+/// one place.
+#[allow(clippy::too_many_lines)]
 pub fn parse_fault(file: &Path, text: &str) -> Result<Fault, String> {
     let at = |msg: String| format!("{}: {msg}", file.display());
     let mut number = None;
     let mut task = None;
     let mut lib = None;
     let mut expect = BTreeMap::new();
+    let mut suite_file: Option<PathBuf> = None;
+    let mut suite_expect: Option<SuiteExpectation> = None;
     for line in text.lines() {
         let Some(rest) = line.trim_start().strip_prefix('*') else {
             continue;
@@ -186,15 +219,53 @@ pub fn parse_fault(file: &Path, text: &str) -> Result<Fault, String> {
                     return Err(at(format!("two expectations for {oracle}")));
                 }
             }
+            "suite" => {
+                if suite_file.is_some() {
+                    return Err(twice());
+                }
+                suite_file = Some(PathBuf::from(value));
+            }
+            "expect-suite" => {
+                if suite_expect.is_some() {
+                    return Err(twice());
+                }
+                let (v, p) = value
+                    .split_once(char::is_whitespace)
+                    .ok_or_else(|| at(format!("bad otb-expect-suite {value:?}")))?;
+                let valid = match v {
+                    "valid" => true,
+                    "invalid" => false,
+                    _ => return Err(at(format!("bad otb-expect-suite {value:?}"))),
+                };
+                let passes_on_fault = match p.trim() {
+                    "pass" => true,
+                    "fail" => false,
+                    _ => return Err(at(format!("bad otb-expect-suite {value:?}"))),
+                };
+                suite_expect = Some(SuiteExpectation {
+                    valid,
+                    passes_on_fault,
+                });
+            }
             _ => return Err(at(format!("unknown header key otb-{key}"))),
         }
     }
+    let suite = match (suite_file, suite_expect) {
+        (Some(f), Some(e)) => Some((f, e)),
+        (None, None) => None,
+        _ => {
+            return Err(at(
+                "otb-suite and otb-expect-suite must be given together".into()
+            ));
+        }
+    };
     Ok(Fault {
         number: number.ok_or_else(|| at("missing otb-fault".into()))?,
         task: task.ok_or_else(|| at("missing otb-task".into()))?,
         lib: lib.ok_or_else(|| at("missing otb-lib".into()))?,
         file: file.to_path_buf(),
         expect,
+        suite,
     })
 }
 
@@ -281,16 +352,81 @@ impl Row {
     }
 }
 
-/// Runs every seeded fault.
+/// The selftest result for a fault's test suite.
+#[derive(Debug)]
+pub struct SuiteRow {
+    /// Fault number.
+    pub fault: u32,
+    /// The suite file.
+    pub suite: PathBuf,
+    /// What the header says must happen.
+    pub expected: SuiteExpectation,
+    /// What happened.
+    pub observed: SuiteReport,
+}
+
+impl SuiteRow {
+    /// True if validity and the result on the fault are as documented.
+    #[must_use]
+    pub fn holds(&self) -> bool {
+        self.observed.valid() == self.expected.valid
+            && self
+                .observed
+                .candidate
+                .as_ref()
+                .is_some_and(RunResult::passed)
+                == self.expected.passes_on_fault
+    }
+
+    /// The expected outcome, for the table.
+    #[must_use]
+    pub fn expected_text(&self) -> String {
+        self.expected.render()
+    }
+
+    /// The observed outcome, for the table.
+    #[must_use]
+    pub fn observed_text(&self) -> String {
+        let r = &self.observed;
+        let (killed, total) = r.score();
+        let validity = if r.valid() {
+            format!(
+                "valid ({}; {killed}/{total} mutants killed)",
+                r.reference
+                    .as_ref()
+                    .map_or_else(String::new, RunResult::describe)
+            )
+        } else {
+            format!("invalid ({})", r.invalid_reasons().join("; "))
+        };
+        let on_fault = r
+            .candidate
+            .as_ref()
+            .map_or_else(|| "not run".into(), RunResult::describe);
+        format!("{validity}; on the fault it {on_fault}")
+    }
+}
+
+/// Everything `otb selftest` found.
+#[derive(Debug)]
+pub struct Selftest {
+    /// One row per fault and oracle.
+    pub rows: Vec<Row>,
+    /// One row per fault that has a test suite.
+    pub suites: Vec<SuiteRow>,
+}
+
+/// Runs every seeded fault, and every fault's test suite.
 ///
 /// # Errors
 ///
 /// A fault file is malformed, names an unknown task, lacks an expectation
 /// for an implemented applicable oracle, or has one for an oracle the
 /// matrix marks not applicable.
-pub fn run(h: &Harness, specs: &[TaskSpec]) -> Result<Vec<Row>, HarnessError> {
+pub fn run(h: &Harness, specs: &[TaskSpec]) -> Result<Selftest, HarnessError> {
     let faults = load_faults(&h.repo)?;
     let mut rows = Vec::new();
+    let mut suites = Vec::new();
     for f in &faults {
         let spec = specs
             .iter()
@@ -333,8 +469,19 @@ pub fn run(h: &Harness, specs: &[TaskSpec]) -> Result<Vec<Row>, HarnessError> {
                 observed: ran.remove(oracle),
             });
         }
+        if let Some((file, expected)) = &f.suite {
+            let mut imp = f.implementation();
+            imp.source = h.path(&imp.source);
+            let observed = suite::run_suite(h, &f.task, &h.path(file), Some(&imp))?;
+            suites.push(SuiteRow {
+                fault: f.number,
+                suite: file.clone(),
+                expected: *expected,
+                observed,
+            });
+        }
     }
-    Ok(rows)
+    Ok(Selftest { rows, suites })
 }
 
 #[cfg(test)]
@@ -421,7 +568,7 @@ mod tests {
         let repo = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
         let faults = load_faults(&repo).unwrap();
         let numbers: Vec<u32> = faults.iter().map(|f| f.number).collect();
-        assert_eq!(numbers, [1, 2, 3, 4, 5, 6, 7]);
+        assert_eq!(numbers, [1, 2, 3, 4, 5, 6, 7, 8]);
         let specs = otb_core::spec::load_all(&repo.join("tasks")).unwrap();
         for f in &faults {
             let spec = specs.iter().find(|s| s.id.as_str() == f.task).unwrap();

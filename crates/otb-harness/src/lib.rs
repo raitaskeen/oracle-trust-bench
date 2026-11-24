@@ -14,10 +14,12 @@
 
 pub mod admission;
 pub mod ct;
+pub mod mutants;
 pub mod oracles;
 pub mod reference;
 pub mod rng;
 pub mod selftest;
+pub mod suite;
 
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -312,6 +314,49 @@ impl Harness {
             input_dir: stage.0.clone(),
             argv: vec!["sh".into(), "-c".into(), script(lib_include)],
             stdin: input,
+            limits,
+        };
+        Ok(otb_sandbox::run(&self.backend, &job)?)
+    }
+
+    /// Stages `files` (path inside the stage, contents), `tasks.h`, the
+    /// test-file interface (`$OTB_IN/harness/test-abi`) and, if given, a
+    /// library (`$OTB_IN/lib`), then runs `script`. Used by the test-suite
+    /// runner, which builds one suite against many implementations in one
+    /// sandbox job (ADR-006). Untrusted files are staged only as inputs; the
+    /// script decides what is compiled.
+    pub fn run_files_script(
+        &self,
+        files: &[(String, Vec<u8>)],
+        lib: Option<Library>,
+        script: &str,
+        limits: Limits,
+    ) -> Result<otb_sandbox::Outcome, HarnessError> {
+        let stage = new_stage()?;
+        let harness_dir = stage.0.join("harness");
+        std::fs::create_dir_all(&harness_dir)?;
+        std::fs::copy(
+            self.repo.join("c/harness/tasks.h"),
+            harness_dir.join("tasks.h"),
+        )?;
+        copy_dir(
+            &self.repo.join("c/harness/test-abi"),
+            &harness_dir.join("test-abi"),
+        )?;
+        if let Some(lib) = lib {
+            copy_dir(&self.repo.join(lib.source_dir()), &stage.0.join("lib"))?;
+        }
+        for (rel, bytes) in files {
+            let dest = stage.0.join(rel);
+            if let Some(parent) = dest.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            std::fs::write(dest, bytes)?;
+        }
+        let job = Job {
+            input_dir: stage.0.clone(),
+            argv: vec!["sh".into(), "-c".into(), script.to_owned()],
+            stdin: Vec::new(),
             limits,
         };
         Ok(otb_sandbox::run(&self.backend, &job)?)

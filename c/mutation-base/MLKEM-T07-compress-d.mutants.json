@@ -1,0 +1,150 @@
+{
+  "task": "MLKEM-T07-compress-d",
+  "base": "c/mutation-base/MLKEM-T07-compress-d.c",
+  "base_sha256": "79030244b825945829346f855b197b2e87259f77bbfec1c743d65cb65acce8a0",
+  "mutants": [
+    {
+      "mutant": {
+        "id": "M001",
+        "line": 13,
+        "col": 28,
+        "from": "<<",
+        "to": ">>"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M002",
+        "line": 14,
+        "col": 25,
+        "from": "+",
+        "to": "-"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M003",
+        "line": 14,
+        "col": 27,
+        "from": "1664u",
+        "to": "1665u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M004",
+        "line": 14,
+        "col": 27,
+        "from": "1664u",
+        "to": "1663u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M005",
+        "line": 14,
+        "col": 36,
+        "from": "3329u",
+        "to": "3330u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M006",
+        "line": 14,
+        "col": 36,
+        "from": "3329u",
+        "to": "3328u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M007",
+        "line": 14,
+        "col": 43,
+        "from": "&",
+        "to": "|"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M008",
+        "line": 14,
+        "col": 47,
+        "from": "1u",
+        "to": "2u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M009",
+        "line": 14,
+        "col": 47,
+        "from": "1u",
+        "to": "0u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M010",
+        "line": 14,
+        "col": 50,
+        "from": "<<",
+        "to": ">>"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M011",
+        "line": 14,
+        "col": 56,
+        "from": "-",
+        "to": "+"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M012",
+        "line": 14,
+        "col": 58,
+        "from": "1u",
+        "to": "2u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M013",
+        "line": 14,
+        "col": 58,
+        "from": "1u",
+        "to": "0u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    }
+  ]
+}

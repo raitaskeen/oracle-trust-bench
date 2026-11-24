@@ -4,6 +4,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 mod budget;
+mod suites;
 
 use clap::{Args, Parser, Subcommand};
 use otb_core::canonical::to_canonical_string;
@@ -53,6 +54,26 @@ enum Command {
         #[command(flatten)]
         sandbox: SandboxArgs,
     },
+    /// Judge a model-written test suite: validity (assertions, reference,
+    /// mutants) and, if a candidate is given, whether it passes (ADR-006).
+    Suite {
+        /// Task ID, e.g. MLKEM-T07-compress-d.
+        #[arg(long)]
+        task: String,
+        /// The test file (uses c/harness/test-abi/otb_test.h).
+        #[arg(long)]
+        tests: PathBuf,
+        /// The implementation the suite was written for.
+        #[arg(long)]
+        candidate: Option<PathBuf>,
+        #[command(flatten)]
+        sandbox: SandboxArgs,
+    },
+    /// Mutant sets of the mutation bases (ADR-006).
+    Mutants {
+        #[command(subcommand)]
+        command: MutantsCommand,
+    },
     /// Print the task-by-oracle applicability matrix.
     Matrix {
         /// Directory holding the task specs.
@@ -79,6 +100,28 @@ enum RefCommand {
     /// Run the C references through every implemented oracle and compare
     /// with the spec-literal code and the ACVP vectors.
     Run {
+        #[command(flatten)]
+        sandbox: SandboxArgs,
+    },
+}
+
+#[derive(Subcommand)]
+enum MutantsCommand {
+    /// Generate every mutant, run the functional oracles on each, and write
+    /// c/mutation-base/<task>.mutants.json.
+    Classify {
+        /// One task; all pilot tasks if omitted.
+        #[arg(long)]
+        task: Option<String>,
+        #[command(flatten)]
+        sandbox: SandboxArgs,
+    },
+    /// Re-run the classification and fail if it differs from the committed
+    /// manifests.
+    Verify {
+        /// One task; all pilot tasks if omitted.
+        #[arg(long)]
+        task: Option<String>,
         #[command(flatten)]
         sandbox: SandboxArgs,
     },
@@ -304,9 +347,10 @@ fn run_selftest(h: &Harness) -> Result<ExitCode, Box<dyn std::error::Error>> {
         "{:5} {:36} {:24} {:30} observed",
         "fault", "task", "oracle", "expected"
     );
-    let rows = selftest::run(h, &specs)?;
+    let st = selftest::run(h, &specs)?;
+    let rows = &st.rows;
     let (mut held, mut broken, mut pending) = (0, 0, 0);
-    for r in &rows {
+    for r in rows {
         let mark = if r.pending() {
             pending += 1;
             "..."
@@ -324,6 +368,23 @@ fn run_selftest(h: &Harness) -> Result<ExitCode, Box<dyn std::error::Error>> {
             r.oracle.name(),
             r.expected_text(),
             r.observed_text()
+        );
+    }
+    for s in &st.suites {
+        let mark = if s.holds() {
+            held += 1;
+            "ok"
+        } else {
+            broken += 1;
+            "MISMATCH"
+        };
+        println!(
+            "{:5} {:36} {:24} {:30} {} [{mark}]",
+            s.fault,
+            s.observed.task,
+            "test suite",
+            s.expected_text(),
+            s.observed_text()
         );
     }
     println!("{held} expectations hold, {broken} do not, {pending} pending");
@@ -391,6 +452,18 @@ fn run(cli: Cli) -> Result<ExitCode, Box<dyn std::error::Error>> {
             sandbox,
         } => check(&sandbox.harness()?, &task, candidate, json),
         Command::Selftest { sandbox } => run_selftest(&sandbox.harness()?),
+        Command::Suite {
+            task,
+            tests,
+            candidate,
+            sandbox,
+        } => suites::suite(&sandbox.harness()?, &task, &tests, candidate),
+        Command::Mutants {
+            command: MutantsCommand::Classify { task, sandbox },
+        } => suites::classify(&sandbox.harness()?, task.as_deref(), false),
+        Command::Mutants {
+            command: MutantsCommand::Verify { task, sandbox },
+        } => suites::classify(&sandbox.harness()?, task.as_deref(), true),
         Command::Matrix { tasks, write } => {
             let generated = render_matrix_markdown(&load_all(&tasks)?);
             match write {

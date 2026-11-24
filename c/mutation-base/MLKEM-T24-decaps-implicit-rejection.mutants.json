@@ -1,0 +1,183 @@
+{
+  "task": "MLKEM-T24-decaps-implicit-rejection",
+  "base": "c/mutation-base/MLKEM-T24-decaps-implicit-rejection.c",
+  "base_sha256": "526588ca2f8cfee9af90ca527e3c1bdf0a7bf6153712603b581882b19edd39eb",
+  "mutants": [
+    {
+      "mutant": {
+        "id": "M001",
+        "line": 18,
+        "col": 32,
+        "from": "32",
+        "to": "33"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M002",
+        "line": 18,
+        "col": 32,
+        "from": "32",
+        "to": "31"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M003",
+        "line": 20,
+        "col": 14,
+        "from": "!=",
+        "to": "=="
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M004",
+        "line": 20,
+        "col": 17,
+        "from": "1088",
+        "to": "1089"
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M005",
+        "line": 20,
+        "col": 17,
+        "from": "1088",
+        "to": "1087"
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M006",
+        "line": 20,
+        "col": 22,
+        "from": "||",
+        "to": "&&"
+      },
+      "killed_by_oracle": true,
+      "evidence": "malformed-input wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M007",
+        "line": 20,
+        "col": 32,
+        "from": "!=",
+        "to": "=="
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M008",
+        "line": 20,
+        "col": 35,
+        "from": "2400",
+        "to": "2401"
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M009",
+        "line": 20,
+        "col": 35,
+        "from": "2400",
+        "to": "2399"
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M010",
+        "line": 20,
+        "col": 49,
+        "from": "1",
+        "to": "2"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M011",
+        "line": 20,
+        "col": 49,
+        "from": "1",
+        "to": "0"
+      },
+      "killed_by_oracle": true,
+      "evidence": "malformed-input wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M012",
+        "line": 21,
+        "col": 31,
+        "from": "==",
+        "to": "!="
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M013",
+        "line": 21,
+        "col": 34,
+        "from": "0",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M014",
+        "line": 21,
+        "col": 38,
+        "from": "0",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp wrong-return-code"
+    },
+    {
+      "mutant": {
+        "id": "M015",
+        "line": 21,
+        "col": 43,
+        "from": "1",
+        "to": "2"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M016",
+        "line": 21,
+        "col": 43,
+        "from": "1",
+        "to": "0"
+      },
+      "killed_by_oracle": true,
+      "evidence": "acvp task-contract"
+    }
+  ]
+}

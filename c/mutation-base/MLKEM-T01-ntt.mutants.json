@@ -1,0 +1,678 @@
+{
+  "task": "MLKEM-T01-ntt",
+  "base": "c/mutation-base/MLKEM-T01-ntt.c",
+  "base_sha256": "fe624011a17a5105489fe5b3c9fdf8fd7bc91cf7f2118bf22b4fee8f74ab0b02",
+  "mutants": [
+    {
+      "mutant": {
+        "id": "M001",
+        "line": 14,
+        "col": 19,
+        "from": "3329",
+        "to": "3330"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M002",
+        "line": 14,
+        "col": 19,
+        "from": "3329",
+        "to": "3328"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M003",
+        "line": 15,
+        "col": 12,
+        "from": "<",
+        "to": "<="
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M004",
+        "line": 15,
+        "col": 14,
+        "from": "0",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M005",
+        "line": 15,
+        "col": 20,
+        "from": "+",
+        "to": "-"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M006",
+        "line": 15,
+        "col": 22,
+        "from": "3329",
+        "to": "3330"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M007",
+        "line": 15,
+        "col": 22,
+        "from": "3329",
+        "to": "3328"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M008",
+        "line": 19,
+        "col": 16,
+        "from": "0",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M009",
+        "line": 20,
+        "col": 21,
+        "from": "0",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M010",
+        "line": 20,
+        "col": 26,
+        "from": "<",
+        "to": "<="
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M011",
+        "line": 20,
+        "col": 28,
+        "from": "7",
+        "to": "8"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M012",
+        "line": 20,
+        "col": 28,
+        "from": "7",
+        "to": "6"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M013",
+        "line": 20,
+        "col": 38,
+        "from": "|=",
+        "to": "&="
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M014",
+        "line": 20,
+        "col": 45,
+        "from": ">>",
+        "to": "<<"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M015",
+        "line": 20,
+        "col": 51,
+        "from": "&",
+        "to": "|"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M016",
+        "line": 20,
+        "col": 53,
+        "from": "1u",
+        "to": "2u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M017",
+        "line": 20,
+        "col": 53,
+        "from": "1u",
+        "to": "0u"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M018",
+        "line": 20,
+        "col": 57,
+        "from": "<<",
+        "to": ">>"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M019",
+        "line": 20,
+        "col": 61,
+        "from": "6",
+        "to": "7"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M020",
+        "line": 20,
+        "col": 61,
+        "from": "6",
+        "to": "5"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate timeout"
+    },
+    {
+      "mutant": {
+        "id": "M021",
+        "line": 20,
+        "col": 63,
+        "from": "-",
+        "to": "+"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M022",
+        "line": 24,
+        "col": 20,
+        "from": "256",
+        "to": "257"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M023",
+        "line": 24,
+        "col": 20,
+        "from": "256",
+        "to": "255"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M024",
+        "line": 25,
+        "col": 13,
+        "from": "256",
+        "to": "257"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M025",
+        "line": 25,
+        "col": 13,
+        "from": "256",
+        "to": "255"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M026",
+        "line": 26,
+        "col": 16,
+        "from": "0",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M027",
+        "line": 26,
+        "col": 21,
+        "from": "<",
+        "to": "<="
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M028",
+        "line": 26,
+        "col": 23,
+        "from": "256",
+        "to": "257"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M029",
+        "line": 26,
+        "col": 23,
+        "from": "256",
+        "to": "255"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M030",
+        "line": 27,
+        "col": 16,
+        "from": "1",
+        "to": "2"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M031",
+        "line": 27,
+        "col": 16,
+        "from": "1",
+        "to": "0"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M032",
+        "line": 28,
+        "col": 23,
+        "from": "128",
+        "to": "129"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M033",
+        "line": 28,
+        "col": 23,
+        "from": "128",
+        "to": "127"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate crash"
+    },
+    {
+      "mutant": {
+        "id": "M034",
+        "line": 28,
+        "col": 32,
+        "from": ">=",
+        "to": ">"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M035",
+        "line": 28,
+        "col": 35,
+        "from": "2",
+        "to": "3"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M036",
+        "line": 28,
+        "col": 35,
+        "from": "2",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M037",
+        "line": 28,
+        "col": 45,
+        "from": "2",
+        "to": "3"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate crash"
+    },
+    {
+      "mutant": {
+        "id": "M038",
+        "line": 28,
+        "col": 45,
+        "from": "2",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate timeout"
+    },
+    {
+      "mutant": {
+        "id": "M039",
+        "line": 29,
+        "col": 27,
+        "from": "0",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M040",
+        "line": 29,
+        "col": 36,
+        "from": "<",
+        "to": "<="
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate crash"
+    },
+    {
+      "mutant": {
+        "id": "M041",
+        "line": 29,
+        "col": 38,
+        "from": "256",
+        "to": "257"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate crash"
+    },
+    {
+      "mutant": {
+        "id": "M042",
+        "line": 29,
+        "col": 38,
+        "from": "256",
+        "to": "255"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M043",
+        "line": 29,
+        "col": 49,
+        "from": "+=",
+        "to": "-="
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M044",
+        "line": 29,
+        "col": 52,
+        "from": "2",
+        "to": "3"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate crash"
+    },
+    {
+      "mutant": {
+        "id": "M045",
+        "line": 29,
+        "col": 52,
+        "from": "2",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate crash"
+    },
+    {
+      "mutant": {
+        "id": "M046",
+        "line": 30,
+        "col": 22,
+        "from": "1",
+        "to": "2"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M047",
+        "line": 30,
+        "col": 22,
+        "from": "1",
+        "to": "0"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M048",
+        "line": 31,
+        "col": 25,
+        "from": "0",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M049",
+        "line": 31,
+        "col": 30,
+        "from": "<",
+        "to": "<="
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M050",
+        "line": 31,
+        "col": 69,
+        "from": "17",
+        "to": "18"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M051",
+        "line": 31,
+        "col": 69,
+        "from": "17",
+        "to": "16"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M052",
+        "line": 33,
+        "col": 34,
+        "from": "<",
+        "to": "<="
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M053",
+        "line": 33,
+        "col": 42,
+        "from": "+",
+        "to": "-"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate crash"
+    },
+    {
+      "mutant": {
+        "id": "M054",
+        "line": 34,
+        "col": 38,
+        "from": "+",
+        "to": "-"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate crash"
+    },
+    {
+      "mutant": {
+        "id": "M055",
+        "line": 35,
+        "col": 13,
+        "from": "+",
+        "to": "-"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate crash"
+    },
+    {
+      "mutant": {
+        "id": "M056",
+        "line": 35,
+        "col": 33,
+        "from": "-",
+        "to": "+"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M057",
+        "line": 36,
+        "col": 27,
+        "from": "+",
+        "to": "-"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M058",
+        "line": 40,
+        "col": 16,
+        "from": "0",
+        "to": "1"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M059",
+        "line": 40,
+        "col": 21,
+        "from": "<",
+        "to": "<="
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M060",
+        "line": 40,
+        "col": 23,
+        "from": "256",
+        "to": "257"
+      },
+      "killed_by_oracle": false,
+      "evidence": null
+    },
+    {
+      "mutant": {
+        "id": "M061",
+        "line": 40,
+        "col": 23,
+        "from": "256",
+        "to": "255"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    }
+  ]
+}

@@ -162,6 +162,43 @@ Entries are never deleted. A closed gap stays, with its status set to
   the sandbox (ADR-003). How rejected candidates count in H1 must be fixed
   in the pre-registration.
 
+## GAP-MUT-001 Mutants are first-order and lexical; equivalence is decided by the oracles
+
+- Status: open
+- Affects: test-suite validity and mutation scores (ADR-006)
+- Each mutant changes one operator or integer literal in the marked region
+  of a task's mutation base. Higher-order faults, deleted statements and
+  changed control flow are not generated. A mutant counts only if a
+  functional oracle kills it; the others are treated as equivalent. For
+  T07 and T41 the oracle is exhaustive, so this is exact; for T01 the
+  oracle's inputs determine the NTT completely (it is linear); for T47 and
+  T24 the oracle samples, so a surviving mutant may still differ on inputs
+  the oracle did not try, and is then wrongly left out of the score.
+- For T24 the library is not mutated, only the input checks and the
+  return-value mapping around it, so T24 mutants test error handling, not
+  the decapsulation arithmetic.
+- Measured with `otb mutants classify` (24 Nov 2026): 121 mutants, 103
+  killed by a functional oracle. Of the 18 survivors, 13 were checked by
+  hand and are equivalent (for example a bound on a bit that is always
+  zero, array sizes in parameters, or `return -2` for `return -1` where
+  the contract only asks for nonzero). The other 5, all in T01, are
+  out-of-bounds array accesses (undefined behaviour) whose outputs did
+  not change under the pinned compiler; they are excluded from scoring,
+  and a suite is not expected to catch them. A sanitizer build would be
+  needed to count them (not in the pilot).
+
+## GAP-SUITE-001 A test suite runs in the same process as the code it tests
+
+- Status: open
+- Affects: test-suite results (ADR-006)
+- Assertion counts are kept by harness code linked into the test program
+  and reported at exit. The admission policy stops a suite from
+  redefining the harness's names, but a suite (or a candidate) could
+  still call the recording function directly or corrupt memory, so the
+  counts are trustworthy for suites written in good faith, not against a
+  deliberately adversarial one. Suites and candidates run only in the
+  sandbox.
+
 ## GAP-SBX-001 The unshare fallback does not isolate the filesystem
 
 - Status: open

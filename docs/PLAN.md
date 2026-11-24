@@ -33,9 +33,9 @@ no model calls and holds no results. See `protocol/APPLICATION.md`.
 | M2 | Spec format, five pilot specs, spec-literal FIPS functions | done | commit `a260d48`; `otb tasks validate` |
 | M3 | Vectors, sandbox, C shims, `otb ref run` | done | `800ee3e`, `9003b27`, `2933c29`, `2023fb1`, `2d9364b`; `otb ref run` passes on both backends |
 | M4 | Reference-intermediate, malformed-input, implicit-rejection oracles; admission; seeded faults 2-7 | done | `a405a06`; `otb ref run` passes; `otb selftest` 10/10 expectations held at M4 |
-| M5a | Constant-time oracles (Valgrind, static division), fault 1, false-positive table | done | the M5a commit; ADR-005; `otb ref run` passes every oracle; `otb selftest` 25/25 (`c/seeded-faults/README.md`); `docs/oracles/false-positives.md` |
-| M5b | Runner for model-written test suites, mutants, fault 8 | next | |
-| M6 | Determinism at 1/4/16 jobs, `run.json`, stats, `otb power`; selftest in CI as a gate | later | `otb budget` done (`c88d45f`); `otb selftest` exists from M4 |
+| M5a | Constant-time oracles (Valgrind, static division), fault 1, false-positive table | done | `a2973fd`; ADR-005; `otb ref run` passes every oracle; `otb selftest` 25/25 (`c/seeded-faults/README.md`); `docs/oracles/false-positives.md` |
+| M5b | Runner for model-written test suites, mutants, fault 8 | done | ADR-006; 121 mutants (103 counted); `otb selftest` 29/29 including fault 8's suite |
+| M6 | Determinism at 1/4/16 jobs, `run.json`, stats, `otb power` | next | `otb budget` done (`c88d45f`); `otb selftest` exists from M4 |
 | M7 | Documentation and mdBook | later | |
 | M8 | Independent review | later | |
 
@@ -98,15 +98,36 @@ no model calls and holds no results. See `protocol/APPLICATION.md`.
 - [x] False-positive table: 0/5 for both CT oracles on the references.
 - [x] `ct_probes.rs` asserts the Valgrind blind spots in CI.
 
-### M5b next steps
+### M5b checklist (done)
 
-- [ ] Fixed test-file ABI (C `main` plus a harness-supplied `OTB_ASSERT`
-      that counts assertions) and a runner that executes a test suite in
-      the sandbox against the candidate, the reference and mutants.
-- [ ] Mutant set per task (hand-written, documented like the faults).
-- [ ] Validity rules: at least 5 assertions, kills at least 1 mutant,
-      passes on the reference.
-- [ ] Seeded fault 8 and its weak "model-style" test file.
+- [x] Test-file interface (`c/harness/test-abi/`): a C file with `main`
+      and `OTB_ASSERT`; assertions counted at run time by linked harness
+      code; test-file admission (no redefining `OTB_`/`otb_` names).
+- [x] Mutation bases for the five tasks (`c/mutation-base/`), each passing
+      every functional oracle; a deterministic first-order mutant
+      generator; committed manifests (121 mutants, 103 killed by a
+      functional oracle; the 18 survivors checked, GAP-MUT-001).
+- [x] `otb suite`: validity (admitted, compiles, passes on the reference
+      with at least 5 assertions, kills a counted mutant), mutation score,
+      and the result on the candidate.
+- [x] `otb mutants classify` and `otb mutants verify`.
+- [x] Seeded fault 8 and its weak suite; `otb selftest` 29/29.
+- [x] ADR-006; draft pre-registration entry D2.
+
+Changed on the way: the mutant set is generated from the bases by fixed
+operators, not written by hand as first planned, so it is reproducible and
+can be cited by hash.
+
+### M6 next steps
+
+- [ ] `run.json`: hashes of every input, the image, the toolchain; one
+      record per run.
+- [ ] Determinism: verdict files byte-identical at 1, 4 and 16 jobs (needs
+      a parallel runner).
+- [ ] Statistics (`otb-stats`): Wilson intervals, task-clustered
+      bootstrap, TOST at +-5 pp, Holm; checked against published values.
+- [ ] `otb power` over the sensitivity grid (self-test pass rate, ICC,
+      true false-assurance rate); KNOWN_GAPS entry if power < 0.8.
 
 ## Toolchain policy
 

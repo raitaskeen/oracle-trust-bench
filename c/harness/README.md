@@ -17,6 +17,9 @@ All C here runs only inside the sandbox (ADR-001, ADR-003).
   undefined for Valgrind memcheck before the call and its outputs defined
   after it (`ct-valgrind`, ADR-005). The secrets per task are written next
   to each driver and follow the task specs.
+- `test-abi/` is the interface for model-written test suites
+  (`otb_test.h`, `OTB_ASSERT`) and the harness code that counts assertions
+  and reports them at exit (`otb_test.c`; ADR-006).
 - `ct-include/` holds declaration-only `string.h` and `stdlib.h` for the
   compile-only cross targets of `ct-static-division` (GAP-CT-005).
 - `acvp_mldsa.c` is a whole program (not a task implementation) that runs

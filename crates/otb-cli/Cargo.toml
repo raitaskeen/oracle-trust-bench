@@ -18,6 +18,7 @@ otb-core.workspace = true
 otb-harness.workspace = true
 otb-sandbox.workspace = true
 clap.workspace = true
+serde_json.workspace = true
 
 [lints]
 workspace = true

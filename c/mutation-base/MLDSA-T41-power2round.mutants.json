@@ -1,0 +1,117 @@
+{
+  "task": "MLDSA-T41-power2round",
+  "base": "c/mutation-base/MLDSA-T41-power2round.c",
+  "base_sha256": "11c152e8c4f15454334ade6156c401112b1135f92a26f5ea1fb9111db5850f0a",
+  "mutants": [
+    {
+      "mutant": {
+        "id": "M001",
+        "line": 13,
+        "col": 19,
+        "from": "+",
+        "to": "-"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M002",
+        "line": 13,
+        "col": 21,
+        "from": "4095",
+        "to": "4096"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M003",
+        "line": 13,
+        "col": 21,
+        "from": "4095",
+        "to": "4094"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M004",
+        "line": 13,
+        "col": 27,
+        "from": ">>",
+        "to": "<<"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M005",
+        "line": 13,
+        "col": 30,
+        "from": "13",
+        "to": "14"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M006",
+        "line": 13,
+        "col": 30,
+        "from": "13",
+        "to": "12"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M007",
+        "line": 15,
+        "col": 11,
+        "from": "-",
+        "to": "+"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M008",
+        "line": 15,
+        "col": 17,
+        "from": "<<",
+        "to": ">>"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M009",
+        "line": 15,
+        "col": 20,
+        "from": "13",
+        "to": "14"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    },
+    {
+      "mutant": {
+        "id": "M010",
+        "line": 15,
+        "col": 20,
+        "from": "13",
+        "to": "12"
+      },
+      "killed_by_oracle": true,
+      "evidence": "reference-intermediate wrong-output"
+    }
+  ]
+}

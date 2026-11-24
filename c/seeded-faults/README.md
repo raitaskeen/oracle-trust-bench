@@ -22,6 +22,10 @@ outcome differs, or if an implemented applicable oracle has no
 expectation. A fault with `otb-lib: none` is admitted and built exactly
 like a candidate (ADR-004).
 
+A fault can also name a test suite (`otb-suite`, in `suites/`) and say
+whether it must be valid and pass on the fault (`otb-expect-suite`);
+`otb selftest` then runs the suite as `otb suite` would (ADR-006).
+
 | # | File | Task | What it breaks | Caught by |
 |---|---|---|---|---|
 | 1 | `f01-compress-division.c` | MLKEM-T07 | correct result, but divides a secret by q (KyberSlash pattern) | ct-static-division (Cortex-M0+); passes ct-valgrind on purpose (GAP-CT-001) |
@@ -31,12 +35,12 @@ like a candidate (ADR-004).
 | 5 | `f05-compress-rounding.c` | MLKEM-T07 | off-by-one rounding (Eq. 4.7); 5 of 16,645 inputs | reference-intermediate (exhaustive); also ct-static-division |
 | 6 | `f06-power2round-sign.c` | MLDSA-T41 | sign error for negative r0 (Algorithm 35) | reference-intermediate (exhaustive) |
 | 7 | `f07-make-hint-comparison.c` | MLDSA-T47 | `>=` for `>` in Decompose (Algorithm 36) | reference-intermediate (boundary cases); also ct-valgrind and ct-static-division |
-| 8 | (M5b) | | passes a weak hand-written test file but fails an oracle | an oracle, not the test file |
+| 8 | `f08-compress-overflow.c` | MLKEM-T07 | 16-bit intermediate overflows for d >= 5 (7,842 of 16,645 inputs); its weak suite `suites/f08-tests.c` is valid and passes it | reference-intermediate and ct-static-division, not its own suite |
 
 ## Current output
 
 `otb selftest` (Docker backend, image in `docs/notes/environment.md`),
-24 Nov 2026, at the commit that closed M5a, 48 s wall-clock:
+24 Nov 2026, at the commit that closed M5b, 48 s wall-clock:
 
 ```text
 fault task                                 oracle                   expected                       observed
@@ -65,7 +69,11 @@ fault task                                 oracle                   expected    
     7 MLDSA-T47-make-hint                  reference-intermediate   fail (wrong-output)            fail (wrong-output; 98/1000340 cases; first: z=1 r=261887) [ok]
     7 MLDSA-T47-make-hint                  ct-valgrind              fail (secret-dependent-branch) fail (secret-dependent-branch; 2/2 cases; first: gcc-x86_64 -O2: Conditional jump or move depends on uninitialised value(s) at high_bits (impl.c:44)) [ok]
     7 MLDSA-T47-make-hint                  ct-static-division       fail (variable-time-instruction) fail (variable-time-instruction; 2/10 cases; first: clang-armv6m-cortex-m0plus O2: bl __aeabi_uidivmod in make_hint) [ok]
-25 expectations hold, 0 do not, 0 pending
+    8 MLKEM-T07-compress-d                 reference-intermediate   fail (wrong-output)            fail (wrong-output; 7842/16645 cases; first: d=5 x=2048) [ok]
+    8 MLKEM-T07-compress-d                 ct-valgrind              pass                           pass (2 cases) [ok]
+    8 MLKEM-T07-compress-d                 ct-static-division       fail (variable-time-instruction) fail (variable-time-instruction; 2/10 cases; first: clang-armv6m-cortex-m0plus O2: bl __aeabi_uidiv in compress_d) [ok]
+    8 MLKEM-T07-compress-d                 test suite               valid, passes on the fault     valid (passes (7 assertions); 11/13 mutants killed); on the fault it passes (7 assertions) [ok]
+29 expectations hold, 0 do not, 0 pending
 ```
 
 Fault 5's first failure, d = 1 and x = 832, is the input predicted in its
@@ -88,4 +96,7 @@ the oracle was right both times:
   by q, which Cortex-M0+ calls as `__aeabi_uidivmod` on a secret
   (`docs/notes/ct-measurements.md`, measurement 4).
 
-The other 23 expectations held as written before their first run.
+The other 27 expectations held as written before their first run,
+including all four for fault 8 (M5b). Its 7,842 failing inputs and its
+first failure, d = 5 and x = 2048 (the first input where x << d no
+longer fits in 16 bits), were predicted with Python before the run.
