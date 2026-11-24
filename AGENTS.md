@@ -43,7 +43,9 @@ pricing, market or startup wording.
 10. **Git.** Small commits with clear messages. Never push, add a remote,
     tag a release, open a pull request or change the repository's
     visibility unless the author asks for that specific action in chat.
-    The repository stays private until M7 is done.
+    The repository is public (the author's decision, 24 Nov 2026), so
+    everything committed is published: never commit anything from
+    `inputs/`, personal data other than the author's ORCID, or secrets.
 11. **Known gaps.** Cite limits by their ID in `KNOWN_GAPS.md`. The test
     `crates/otb-core/tests/known_gaps.rs` fails on an undefined ID.
 

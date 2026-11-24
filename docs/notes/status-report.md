@@ -26,7 +26,7 @@ verification side of "The Oracle-Trust Gap" (`protocol/APPLICATION.md`).
 | Constant-time oracles (M5a) | `ct-valgrind`: secrets marked undefined by the driver, GCC 14.2 at -O2 and -O3 under Valgrind memcheck. `ct-static-division`: divisions reachable from the task function in emitted code, 10 configurations (x86-64, AArch64, Cortex-M4, Cortex-M0+), plus an IR diagnostic | ADR-005; `docs/notes/ct-measurements.md`; `docs/oracles/false-positives.md` |
 | `otb check` (M4) | Judges one candidate C file: admission, then every applicable implemented oracle; canonical verdict JSON with `--json` | ADR-004 |
 | Budget | Port of `analysis/budget.py`; both print `TOTAL 955.98` | `otb budget`; CI step "Budget" |
-| CI | fmt, clippy (pedantic, `-D warnings`), cargo-deny, cargo-audit, spec validation, budget check, tests with the network removed; sandbox job with Docker, the Valgrind probe, `otb ref run` and `otb selftest` | `.github/workflows/ci.yml`. On GitHub the jobs have not started yet: GitHub refuses Actions minutes on the private repository because of an account billing problem; no test has failed |
+| CI | fmt, clippy (pedantic, `-D warnings`), cargo-deny, cargo-audit, spec validation, budget check, tests with the network removed; sandbox job with Docker, the Valgrind probe, `otb ref run` and `otb selftest` | `.github/workflows/ci.yml`. While the repository was private, GitHub did not start the jobs (an account billing problem); public repositories get Actions minutes free |
 | Rules and records | AGENTS.md, CONTRIBUTING.md (review order), TESTING.md, PLAN.md, five ADRs, draft PREREGISTRATION.md, KNOWN_GAPS.md (14 entries; `grep -c '^## GAP-' KNOWN_GAPS.md`), AI_ASSISTANCE.md | the files themselves |
 
 Size (`git ls-files` piped to `wc -l`, at the M5a commit): 7758 lines of
@@ -98,9 +98,9 @@ It **cannot yet**:
 - run model-written test suites or mutants (M5b);
 - write a `run.json`, check determinism at 1/4/16 jobs, or run the
   statistics or the power grid (M6);
-- serve as a public benchmark: no README, THREAT_MODEL or mdBook yet, and
-  PREREGISTRATION.md is a draft with one decided entry (M7); no
-  independent review (M8).
+- serve as a finished public benchmark: the README exists, but there is
+  no THREAT_MODEL or documentation site yet, and PREREGISTRATION.md is a
+  draft with one decided entry (M7); no independent review (M8).
 
 ## 2a. Who can use this, and for what
 
@@ -153,10 +153,11 @@ apt reported "Fetched 152 MB in 1h 34min 48s (26.7 kB/s)".
 
 ## 5. Publishing on GitHub
 
-**Done, private.** At the author's request in chat (24 Nov 2026) the
+**Done, public.** At the author's request in chat (24 Nov 2026) the
 repository was created as a private repository at
 `https://github.com/raitaskeen/oracle-trust-bench` and `main` was pushed.
-Before the push:
+After M5a the author made it public (24 Nov 2026), and the README was
+added. Before the first push:
 
 - every commit was rewritten to the author
   `Taskeen Haider <137790592+raitaskeen@users.noreply.github.com>` (ID from
@@ -165,11 +166,14 @@ Before the push:
 - tracked files were checked: nothing under `inputs/`, and the only email
   addresses are GitHub noreply addresses.
 
-**Public:** after M7, when the README states "No model has been run; no
-results yet" and PREREGISTRATION.md exists. It must be public, with the
-pre-registration timestamped, **before** any model is run, because that
-is what makes the study pre-registered. Visibility changes only on the
-author's request.
+Before it was made public, tracked files were checked again: nothing
+under `inputs/`, and the only email address is the GitHub noreply one.
+
+**Still required for pre-registration:** the pre-registration itself
+(`protocol/PREREGISTRATION.md`, now a draft) must be completed (M7) and
+filed with a timestamp **before** any model is run, because that is what
+makes the study pre-registered. The repository's public history helps
+show that the oracles were fixed before any results existed.
 
 To push later work yourself from WSL (no `gh` there), let Git borrow the
 Windows GitHub CLI login for one command:
