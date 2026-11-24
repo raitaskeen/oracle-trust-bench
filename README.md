@@ -196,6 +196,10 @@ cargo run -q --release -p otb-cli -- suite \
     --candidate my_compress.c                            # judge a test suite
 ```
 
+If you cloned without `--recurse-submodules`, `third_party/mlkem-native`
+and `third_party/mldsa-native` are empty; fetch them with
+`git submodule update --init` before building.
+
 `otb check` prints one line per oracle; `--json` prints canonical verdict
 records instead. Candidate code runs only under Docker. A weaker fallback
 backend (`--backend unshare`, no filesystem isolation, GAP-SBX-001) exists
