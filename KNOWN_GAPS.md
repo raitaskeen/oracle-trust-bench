@@ -72,11 +72,11 @@ Entries are never deleted. A closed gap stays, with its status set to
 
 ## GAP-ENV-001 No Linux sandbox on the author's Windows host yet
 
-- Status: open
+- Status: closed on 24 Nov 2026 (WSL2 Ubuntu 24.04 with Docker Engine; see
+  `docs/notes/environment.md`)
 - Affects: milestones M3 and later, when run locally
-- WSL2 is installed but cannot start until the machine is rebooted and
-  hardware virtualization is enabled. Until then, steps that compile or run
-  C code run only in Linux CI.
+- WSL2 could not start until the machine was rebooted and virtualization
+  was enabled. Both are now done.
 
 ## GAP-ACVP-002 The ACVP vectors are published example sets with few cases
 
